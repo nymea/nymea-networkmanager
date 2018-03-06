@@ -11,7 +11,6 @@ QMAKE_LFLAGS += -std=c++11
 
 HEADERS += \
     networkmanager.h \
-    dbus-interfaces.h \
     networkconnection.h \
     networkdevice.h \
     networksettings.h \
