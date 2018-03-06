@@ -11,8 +11,7 @@
 
 #include "networkservice.h"
 #include "bluetoothuuids.h"
-#include "loggingcategory.h"
-#include "loopd.h"
+#include "loggingcategories.h"
 
 #include <QLowEnergyDescriptorData>
 #include <QLowEnergyCharacteristicData>

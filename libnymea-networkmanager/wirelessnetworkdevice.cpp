@@ -20,7 +20,7 @@
 */
 
 
-#include "dbus-interfaces.h"
+#include "networkmanagerutils.h"
 #include "wirelessnetworkdevice.h"
 
 #include <QUuid>
@@ -34,19 +34,19 @@ WirelessNetworkDevice::WirelessNetworkDevice(const QDBusObjectPath &objectPath, 
 {
     QDBusConnection systemBus = QDBusConnection::systemBus();
     if (!systemBus.isConnected()) {
-        qWarning() << "WirelessNetworkDevice: System DBus not connected";
+        qCWarning(dcNetworkManager()) << "WirelessNetworkDevice: System DBus not connected";
         return;
     }
 
-    m_wirelessInterface = new QDBusInterface(networkManagerServiceString, this->objectPath().path(), wirelessInterfaceString, systemBus, this);
+    m_wirelessInterface = new QDBusInterface(NetworkManagerUtils::networkManagerServiceString(), this->objectPath().path(), NetworkManagerUtils::wirelessInterfaceString(), systemBus, this);
     if (!m_wirelessInterface->isValid()) {
-        qWarning() << "WirelessNetworkDevice: Invalid wireless dbus interface";
+        qCWarning(dcNetworkManager()) << "WirelessNetworkDevice: Invalid wireless dbus interface";
         return;
     }
 
-    QDBusConnection::systemBus().connect(networkManagerServiceString, this->objectPath().path(), wirelessInterfaceString, "AccessPointAdded", this, SLOT(accessPointAdded(QDBusObjectPath)));
-    QDBusConnection::systemBus().connect(networkManagerServiceString, this->objectPath().path(), wirelessInterfaceString, "AccessPointRemoved", this, SLOT(accessPointRemoved(QDBusObjectPath)));
-    QDBusConnection::systemBus().connect(networkManagerServiceString, this->objectPath().path(), wirelessInterfaceString, "PropertiesChanged", this, SLOT(propertiesChanged(QVariantMap)));
+    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), this->objectPath().path(), NetworkManagerUtils::wirelessInterfaceString(), "AccessPointAdded", this, SLOT(accessPointAdded(QDBusObjectPath)));
+    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), this->objectPath().path(), NetworkManagerUtils::wirelessInterfaceString(), "AccessPointRemoved", this, SLOT(accessPointRemoved(QDBusObjectPath)));
+    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), this->objectPath().path(), NetworkManagerUtils::wirelessInterfaceString(), "PropertiesChanged", this, SLOT(propertiesChanged(QVariantMap)));
 
     readAccessPoints();
 
@@ -76,10 +76,10 @@ WirelessAccessPoint *WirelessNetworkDevice::activeAccessPoint()
 /*! Perform a wireless network scan on this \l{WirelessNetworkDevice}. */
 void WirelessNetworkDevice::scanWirelessNetworks()
 {
-    qDebug() << this << "Request scan";
+    qCDebug(dcNetworkManager()) << this << "Request scan";
     QDBusMessage query = m_wirelessInterface->call("RequestScan", QVariantMap());
     if (query.type() != QDBusMessage::ReplyMessage) {
-        qWarning() << "Scan error:" << query.errorName() << query.errorMessage();
+        qCWarning(dcNetworkManager()) << "Scan error:" << query.errorName() << query.errorMessage();
         return;
     }
 }
@@ -110,7 +110,7 @@ void WirelessNetworkDevice::readAccessPoints()
 {
     QDBusMessage query = m_wirelessInterface->call("GetAccessPoints");
     if(query.type() != QDBusMessage::ReplyMessage) {
-        qWarning() << query.errorName() << query.errorMessage();
+        qCWarning(dcNetworkManager()) << query.errorName() << query.errorMessage();
         return;
     }
 
@@ -160,19 +160,19 @@ void WirelessNetworkDevice::setActiveAccessPoint(const QDBusObjectPath &activeAc
 
 void WirelessNetworkDevice::accessPointAdded(const QDBusObjectPath &objectPath)
 {
-    QDBusInterface accessPointInterface(networkManagerServiceString, objectPath.path(), accessPointInterfaceString, QDBusConnection::systemBus());
+    QDBusInterface accessPointInterface(NetworkManagerUtils::networkManagerServiceString(), objectPath.path(), NetworkManagerUtils::accessPointInterfaceString(), QDBusConnection::systemBus());
     if (!accessPointInterface.isValid()) {
-        qWarning() << "WirelessNetworkDevice: Invalid access point dbus interface";
+        qCWarning(dcNetworkManager()) << "WirelessNetworkDevice: Invalid access point dbus interface";
         return;
     }
 
     if (m_accessPointsTable.keys().contains(objectPath)) {
-        qWarning() << "WirelessNetworkDevice: Access point already added" << objectPath.path();
+        qCWarning(dcNetworkManager()) << "WirelessNetworkDevice: Access point already added" << objectPath.path();
         return;
     }
 
     WirelessAccessPoint *accessPoint = new WirelessAccessPoint(objectPath, this);
-    //qDebug() << "WirelessNetworkDevice: [+]" << accessPoint;
+    //qCDebug(dcNetworkManager()) << "WirelessNetworkDevice: [+]" << accessPoint;
     m_accessPointsTable.insert(objectPath, accessPoint);
 }
 
@@ -185,13 +185,13 @@ void WirelessNetworkDevice::accessPointRemoved(const QDBusObjectPath &objectPath
     if (accessPoint == m_activeAccessPoint)
         m_activeAccessPoint = Q_NULLPTR;
 
-    //qDebug() << "WirelessNetworkDevice: [-]" << accessPoint;
+    //qCDebug(dcNetworkManager()) << "WirelessNetworkDevice: [-]" << accessPoint;
     accessPoint->deleteLater();
 }
 
 void WirelessNetworkDevice::propertiesChanged(const QVariantMap &properties)
 {
-    //qDebug() << "WirelessNetworkDevice: Property changed" << properties;
+    //qCDebug(dcNetworkManager()) << "WirelessNetworkDevice: Property changed" << properties;
 
     if (properties.contains("Bitrate"))
         setBitrate(properties.value("Bitrate").toInt());

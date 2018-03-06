@@ -10,7 +10,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "networkconnection.h"
-#include "dbus-interfaces.h"
+#include "networkmanagerutils.h"
 
 #include <QDebug>
 #include <QJsonDocument>
@@ -22,15 +22,15 @@ NetworkConnection::NetworkConnection(const QDBusObjectPath &objectPath, QObject 
 {
     qDBusRegisterMetaType<ConnectionSettings>();
 
-    m_connectionInterface = new QDBusInterface(networkManagerServiceString, m_objectPath.path(), connectionsInterfaceString, QDBusConnection::systemBus(), this);
+    m_connectionInterface = new QDBusInterface(NetworkManagerUtils::networkManagerServiceString(), m_objectPath.path(), NetworkManagerUtils::connectionsInterfaceString(), QDBusConnection::systemBus(), this);
     if(!m_connectionInterface->isValid()) {
-        qWarning() << "Invalid connection dbus interface";
+        qCWarning(dcNetworkManager()) << "Invalid connection dbus interface";
         return;
     }
 
     QDBusMessage query = m_connectionInterface->call("GetSettings");
     if(query.type() != QDBusMessage::ReplyMessage) {
-        qWarning() << query.errorName() << query.errorMessage();
+        qCWarning(dcNetworkManager()) << query.errorName() << query.errorMessage();
         return;
     }
 
@@ -46,7 +46,7 @@ void NetworkConnection::deleteConnection()
 {
     QDBusMessage query = m_connectionInterface->call("Delete");
     if(query.type() != QDBusMessage::ReplyMessage)
-        qWarning() << query.errorName() << query.errorMessage();
+        qCWarning(dcNetworkManager()) << query.errorName() << query.errorMessage();
 
 }
 

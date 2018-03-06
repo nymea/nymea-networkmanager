@@ -18,6 +18,7 @@ HEADERS += \
     wirednetworkdevice.h \
     wirelessaccesspoint.h \
     wirelessnetworkdevice.h \
+    networkmanagerutils.h
 
 SOURCES += \
     networkmanager.cpp \
@@ -27,6 +28,7 @@ SOURCES += \
     wirednetworkdevice.cpp \
     wirelessaccesspoint.cpp \
     wirelessnetworkdevice.cpp \
+    networkmanagerutils.cpp
 
 
 # install header file with relative subdirectory

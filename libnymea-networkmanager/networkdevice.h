@@ -20,7 +20,7 @@
 #include <QDBusContext>
 #include <QDBusArgument>
 
-#include "dbus-interfaces.h"
+#include "networkmanagerutils.h"
 
 class NetworkDevice : public QObject
 {

@@ -30,7 +30,7 @@
 #include "networkservice.h"
 #include "wirelessservice.h"
 #include "systemservice.h"
-#include "networkmanager/networkmanager.h"
+#include "networkmanager.h"
 
 class BluetoothServer : public QObject
 {

@@ -28,9 +28,7 @@
 */
 
 #include "wirelessaccesspoint.h"
-#include "dbus-interfaces.h"
-
-#include <QDebug>
+#include "networkmanagerutils.h"
 
 /*! Constructs a new \l{WirelessAccessPoint} with the given dbus \a objectPath and \a parent. */
 WirelessAccessPoint::WirelessAccessPoint(const QDBusObjectPath &objectPath, QObject *parent) :
@@ -38,9 +36,9 @@ WirelessAccessPoint::WirelessAccessPoint(const QDBusObjectPath &objectPath, QObj
     m_objectPath(objectPath),
     m_securityFlags(0)
 {
-    QDBusInterface accessPointInterface(networkManagerServiceString, m_objectPath.path(), accessPointInterfaceString, QDBusConnection::systemBus());
+    QDBusInterface accessPointInterface(NetworkManagerUtils::networkManagerServiceString(), m_objectPath.path(), NetworkManagerUtils::accessPointInterfaceString(), QDBusConnection::systemBus());
     if(!accessPointInterface.isValid()) {
-        qWarning() << "Invalid access point dbus interface";
+        qCWarning(dcNetworkManager()) << "Invalid access point dbus interface";
         return;
     }
 
@@ -52,7 +50,7 @@ WirelessAccessPoint::WirelessAccessPoint(const QDBusObjectPath &objectPath, QObj
     setSecurityFlags(WirelessAccessPoint::ApSecurityModes(accessPointInterface.property("WpaFlags").toUInt()));
     setIsProtected((bool)accessPointInterface.property("Flags").toUInt());
 
-    QDBusConnection::systemBus().connect(networkManagerServiceString, objectPath.path(), accessPointInterfaceString, "PropertiesChanged", this, SLOT(onPropertiesChanged(QVariantMap)));
+    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), objectPath.path(), NetworkManagerUtils::accessPointInterfaceString(), "PropertiesChanged", this, SLOT(onPropertiesChanged(QVariantMap)));
 }
 
 /*! Returns the dbus object path of this \l{WirelessAccessPoint}. */

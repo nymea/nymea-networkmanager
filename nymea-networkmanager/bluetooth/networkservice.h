@@ -16,7 +16,7 @@
 #include <QLowEnergyService>
 #include <QLowEnergyServiceData>
 
-#include "networkmanager/networkmanager.h"
+#include "networkmanager.h"
 
 class NetworkService : public QObject
 {

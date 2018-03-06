@@ -19,6 +19,7 @@ HEADERS += \
     bluetooth/networkservice.h \
     bluetooth/bluetoothuuids.h \
     bluetooth/wirelessservice.h \
+    bluetooth/loggingcategories.h
 
 SOURCES += \
     main.cpp \
@@ -26,6 +27,7 @@ SOURCES += \
     bluetooth/bluetoothserver.cpp \
     bluetooth/networkservice.cpp \
     bluetooth/wirelessservice.cpp \
+    bluetooth/loggingcategories.cpp
 
 target.path = /usr/bin
 INSTALLS += target

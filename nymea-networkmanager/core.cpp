@@ -14,14 +14,12 @@ void Core::destroy()
 {
     if (s_instance)
         delete s_instance;
-
     s_instance = 0;
 }
 
 Core::Core(QObject *parent) :
     QObject(parent)
 {
-
     m_networkManager = new NetworkManager(this);
 
 

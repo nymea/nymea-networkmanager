@@ -11,8 +11,7 @@
 
 #include "wirelessservice.h"
 #include "bluetoothuuids.h"
-#include "loggingcategory.h"
-#include "loopd.h"
+#include "loggingcategories.h"
 
 #include <QJsonDocument>
 #include <QNetworkInterface>

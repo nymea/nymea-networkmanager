@@ -19,7 +19,7 @@
 #include <QDBusContext>
 #include <QDBusArgument>
 
-#include "dbus-interfaces.h"
+#include "networkmanagerutils.h"
 #include "wirednetworkdevice.h"
 #include "wirelessnetworkdevice.h"
 #include "networksettings.h"

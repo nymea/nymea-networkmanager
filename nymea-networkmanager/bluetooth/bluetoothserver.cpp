@@ -10,8 +10,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "bluetoothserver.h"
-#include "loggingcategory.h"
-#include "loopd.h"
+#include "loggingcategories.h"
 #include "bluetoothuuids.h"
 
 #include <QJsonDocument>
@@ -30,7 +29,7 @@ BluetoothServer::BluetoothServer(const QString &machineId, QObject *parent) :
 
 BluetoothServer::~BluetoothServer()
 {
-    qCDebug(dcLoopd()) << "Destroy bluetooth server.";
+    qCDebug(dcBluetoothServer()) << "Destroy bluetooth server.";
     if (m_controller)
         m_controller->stopAdvertising();
 
@@ -81,21 +80,12 @@ QLowEnergyServiceData BluetoothServer::deviceInformationServiceData()
     hardwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
     serviceData.addCharacteristic(hardwareRevisionCharData);
 
-#ifdef SNAPPY
-    // Software revision string 0x2a28
-    QLowEnergyCharacteristicData softwareRevisionCharData;
-    softwareRevisionCharData.setUuid(QBluetoothUuid::SoftwareRevisionString);
-    softwareRevisionCharData.setValue(qgetenv("SNAP_VERSION"));
-    softwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
-    serviceData.addCharacteristic(softwareRevisionCharData);
-#else
     // Software revision string 0x2a28
     QLowEnergyCharacteristicData softwareRevisionCharData;
     softwareRevisionCharData.setUuid(QBluetoothUuid::SoftwareRevisionString);
     softwareRevisionCharData.setValue(QCoreApplication::applicationVersion().toUtf8());
     softwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
     serviceData.addCharacteristic(softwareRevisionCharData);
-#endif
 
     // Manufacturer name string 0x2a29
     QLowEnergyCharacteristicData manufacturerNameCharData;

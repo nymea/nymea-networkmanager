@@ -136,13 +136,13 @@ NetworkDevice::NetworkDevice(const QDBusObjectPath &objectPath, QObject *parent)
 {
     QDBusConnection systemBus = QDBusConnection::systemBus();
     if (!systemBus.isConnected()) {
-        qWarning() << "NetworkDevice: System DBus not connected";
+        qCWarning(dcNetworkManager()) << "NetworkDevice: System DBus not connected";
         return;
     }
 
-    m_networkDeviceInterface = new QDBusInterface(networkManagerServiceString, m_objectPath.path(), deviceInterfaceString, QDBusConnection::systemBus(), this);
+    m_networkDeviceInterface = new QDBusInterface(NetworkManagerUtils::networkManagerServiceString(), m_objectPath.path(), NetworkManagerUtils::deviceInterfaceString(), QDBusConnection::systemBus(), this);
     if(!m_networkDeviceInterface->isValid()) {
-        qWarning() << "NetworkDevice: Invalid DBus device interface" << m_objectPath.path();
+        qCWarning(dcNetworkManager()) << "NetworkDevice: Invalid DBus device interface" << m_objectPath.path();
         return;
     }
 
@@ -164,7 +164,7 @@ NetworkDevice::NetworkDevice(const QDBusObjectPath &objectPath, QObject *parent)
     m_ip4Config = qdbus_cast<QDBusObjectPath>(m_networkDeviceInterface->property("Ip4Config"));
     m_ip6Config = qdbus_cast<QDBusObjectPath>(m_networkDeviceInterface->property("Ip6Config"));
 
-    QDBusConnection::systemBus().connect(networkManagerServiceString, m_objectPath.path(), deviceInterfaceString, "StateChanged", this, SLOT(onStateChanged(uint,uint,uint)));
+    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), m_objectPath.path(), NetworkManagerUtils::deviceInterfaceString(), "StateChanged", this, SLOT(onStateChanged(uint,uint,uint)));
 }
 
 /*! Returns the dbus object path of this \l{NetworkDevice}. */
@@ -280,7 +280,7 @@ void NetworkDevice::disconnectDevice()
 {
     QDBusMessage query = m_networkDeviceInterface->call("Disconnect");
     if(query.type() != QDBusMessage::ReplyMessage)
-        qWarning() << query.errorName() << query.errorMessage();
+        qCWarning(dcNetworkManager()) << query.errorName() << query.errorMessage();
 
 }
 
@@ -314,7 +314,7 @@ QString NetworkDevice::deviceStateReasonToString(const NetworkDevice::NetworkDev
 void NetworkDevice::onStateChanged(uint newState, uint oldState, uint reason)
 {
     Q_UNUSED(oldState);
-    qDebug() << m_interface << "--> State changed:" << deviceStateToString(NetworkDeviceState(newState)) << ":" << deviceStateReasonToString(NetworkDeviceStateReason(reason));
+    qCDebug(dcNetworkManager()) << m_interface << "--> State changed:" << deviceStateToString(NetworkDeviceState(newState)) << ":" << deviceStateReasonToString(NetworkDeviceStateReason(reason));
     if (m_deviceState != NetworkDeviceState(newState)) {
         m_deviceState = NetworkDeviceState(newState);
         emit deviceChanged();

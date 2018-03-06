@@ -19,13 +19,13 @@ WiredNetworkDevice::WiredNetworkDevice(const QDBusObjectPath &objectPath, QObjec
 {
     QDBusConnection systemBus = QDBusConnection::systemBus();
     if (!systemBus.isConnected()) {
-        qWarning() << "WiredNetworkDevice: System DBus not connected";
+        qCWarning(dcNetworkManager()) << "WiredNetworkDevice: System DBus not connected";
         return;
     }
 
-    m_wiredInterface = new QDBusInterface(networkManagerServiceString, this->objectPath().path(), wiredInterfaceString, systemBus, this);
+    m_wiredInterface = new QDBusInterface(NetworkManagerUtils::networkManagerServiceString(), this->objectPath().path(), NetworkManagerUtils::wiredInterfaceString(), systemBus, this);
     if(!m_wiredInterface->isValid()) {
-        qWarning() << "WiredNetworkDevice: Invalid wired dbus interface";
+        qCWarning(dcNetworkManager()) << "WiredNetworkDevice: Invalid wired dbus interface";
         return;
     }
 
@@ -33,7 +33,7 @@ WiredNetworkDevice::WiredNetworkDevice(const QDBusObjectPath &objectPath, QObjec
     setBitRate(m_wiredInterface->property("Bitrate").toInt());
     setPluggedIn(m_wiredInterface->property("Carrier").toBool());
 
-    QDBusConnection::systemBus().connect(networkManagerServiceString, this->objectPath().path(), wiredInterfaceString, "PropertiesChanged", this, SLOT(propertiesChanged(QVariantMap)));
+    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), this->objectPath().path(), NetworkManagerUtils::wiredInterfaceString(), "PropertiesChanged", this, SLOT(propertiesChanged(QVariantMap)));
 }
 
 /*! Returns the mac address of this \l{WiredNetworkDevice}. */
