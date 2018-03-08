@@ -19,7 +19,6 @@
  *                                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-
 #include "bluetoothserver.h"
 #include "loggingcategories.h"
 #include "bluetoothuuids.h"
@@ -31,11 +30,7 @@ BluetoothServer::BluetoothServer(const QString &machineId, QObject *parent) :
     QObject(parent),
     m_machineId(machineId)
 {
-    m_advertisingTimer = new QTimer(this);
-    m_advertisingTimer->setInterval(60000);
-    m_advertisingTimer->setSingleShot(true);
 
-    connect(m_advertisingTimer, &QTimer::timeout, this, &BluetoothServer::onAdvertisingTimeout);
 }
 
 BluetoothServer::~BluetoothServer()
@@ -117,7 +112,7 @@ QLowEnergyServiceData BluetoothServer::genericAccessServiceData()
     // Device name 0x2a00
     QLowEnergyCharacteristicData nameCharData;
     nameCharData.setUuid(QBluetoothUuid::DeviceName);
-    nameCharData.setValue(QString("Loop-box").toUtf8());
+    nameCharData.setValue(QString("nymea-networkmanager").toUtf8());
     nameCharData.setProperties(QLowEnergyCharacteristic::Read);
     serviceData.addCharacteristic(nameCharData);
 
@@ -236,12 +231,10 @@ void BluetoothServer::onControllerStateChanged(const QLowEnergyController::Contr
     case QLowEnergyController::ConnectingState:
         qCDebug(dcBluetoothServer()) << "Controller state connecting...";
         setConnected(false);
-        m_advertisingTimer->stop();
         break;
     case QLowEnergyController::ConnectedState:
         qCDebug(dcBluetoothServer()) << "Controller state connected." << m_controller->remoteName() << m_controller->remoteAddress();
         setConnected(true);
-        m_advertisingTimer->stop();
         break;
     case QLowEnergyController::DiscoveringState:
         qCDebug(dcBluetoothServer()) << "Controller state discovering...";
@@ -259,12 +252,6 @@ void BluetoothServer::onControllerStateChanged(const QLowEnergyController::Contr
     default:
         break;
     }
-}
-
-void BluetoothServer::onAdvertisingTimeout()
-{
-    qCDebug(dcBluetoothServer()) << "Advertising timeout.";
-    stop();
 }
 
 void BluetoothServer::characteristicChanged(const QLowEnergyCharacteristic &characteristic, const QByteArray &value)
@@ -325,7 +312,7 @@ void BluetoothServer::serviceError(const QLowEnergyService::ServiceError &error)
     qCWarning(dcBluetoothServer()) << "Service error:" << errorString;
 }
 
-void BluetoothServer::start()
+void BluetoothServer::start(WirelessNetworkDevice *wirelessDevice)
 {
     // Check if a user is connected
     if (connected()) {
@@ -334,27 +321,19 @@ void BluetoothServer::start()
     }
 
     if (running()) {
-        qCDebug(dcBluetoothServer()) << "Already running. Restart advertise timer." << Loopd::instance()->advertisingTimeout() << "[s].";
+        qCDebug(dcBluetoothServer()) << "Already running.";
         m_localDevice->setHostMode(QBluetoothLocalDevice::HostDiscoverable);
-        m_advertisingTimer->stop();
-        m_advertisingTimer->setSingleShot(true);
-        m_advertisingTimer->setInterval(Loopd::instance()->advertisingTimeout() * 1000);
-        m_advertisingTimer->start();
         return;
     }
 
     qCDebug(dcBluetoothServer()) << "-------------------------------------";
-    qCDebug(dcBluetoothServer()) << "Starting bluetooth server for" << Loopd::instance()->advertisingTimeout() << "[s].";
-    m_advertisingTimer->stop();
-    m_advertisingTimer->setSingleShot(true);
-    m_advertisingTimer->setInterval(Loopd::instance()->advertisingTimeout() * 1000);
+    qCDebug(dcBluetoothServer()) << "Starting bluetooth server";
     qCDebug(dcBluetoothServer()) << "-------------------------------------";
 
     // Local bluetooth device
     m_localDevice = new QBluetoothLocalDevice(this);
     if (!m_localDevice->isValid()) {
         qCCritical(dcBluetoothServer()) << "Local bluetooth device is not valid.";
-        m_advertisingTimer->stop();
         delete m_localDevice;
         m_localDevice = nullptr;
         return;
@@ -383,8 +362,7 @@ void BluetoothServer::start()
 
     // Create services
     m_networkService = new NetworkService(m_controller->addService(NetworkService::serviceData(), m_controller), m_controller);
-    m_wirelessService = new WirelessService(m_controller->addService(WirelessService::serviceData(), m_controller), m_controller);
-    m_systemService = new SystemService(m_controller->addService(SystemService::serviceData(), m_controller), m_controller);
+    m_wirelessService = new WirelessService(m_controller->addService(WirelessService::serviceData(), m_controller), wirelessDevice, m_controller);
 
     QLowEnergyAdvertisingData advertisingData;
     advertisingData.setDiscoverability(QLowEnergyAdvertisingData::DiscoverabilityGeneral);
@@ -392,17 +370,12 @@ void BluetoothServer::start()
     advertisingData.setLocalName("Loop-box");
     // TODO: set guh manufacturer SIG data
 
-
     // Note: start advertising in 100 ms interval, this makes the device better discoverable on certain phones
     QLowEnergyAdvertisingParameters advertisingParameters;
     advertisingParameters.setInterval(100,100);
 
     qCDebug(dcBluetoothServer()) << "Start advertising loopd" << m_localDevice->address().toString();
     m_controller->startAdvertising(advertisingParameters, advertisingData, advertisingData);
-
-    // Start the advertising timer
-    m_advertisingTimer->start();
-    setRunning(true);
 }
 
 void BluetoothServer::stop()
@@ -432,5 +405,29 @@ void BluetoothServer::stop()
 
     setConnected(false);
     setRunning(false);
+}
+
+void BluetoothServer::onNetworkManagerAvailableChanged(bool available)
+{
+    if (m_networkService)
+        m_networkService->setNetworkManagerAvailable(available);
+}
+
+void BluetoothServer::onNetworkingEnabledChanged(bool enabled)
+{
+    if (m_networkService)
+        m_networkService->setNetworkingEnabled(enabled);
+}
+
+void BluetoothServer::onWirelessNetworkingEnabledChanged(bool enabled)
+{
+    if (m_networkService)
+        m_networkService->setNetworkingEnabled(enabled);
+}
+
+void BluetoothServer::onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state)
+{
+    if (m_networkService)
+        m_networkService->setNetworkManagerState(state);
 }
 

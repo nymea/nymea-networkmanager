@@ -1,4 +1,4 @@
-TARGET = nymea-networkmanager1
+TARGET = nymea-networkmanager
 TEMPLATE = lib
 
 target.path = /usr/lib/$$system('dpkg-architecture -q DEB_HOST_MULTIARCH')

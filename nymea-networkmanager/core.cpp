@@ -20,8 +20,9 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "core.h"
+#include "loggingcategories.h"
 
-Core* Core::s_instance = 0;
+Core* Core::s_instance = nullptr;
 
 Core *Core::instance()
 {
@@ -32,17 +33,48 @@ Core *Core::instance()
 }
 
 void Core::destroy()
-{
+{    
     if (s_instance)
         delete s_instance;
-    s_instance = 0;
+
+    s_instance = nullptr;
+}
+
+NetworkManager *Core::networkManager() const
+{
+    return m_networkManager;
 }
 
 Core::Core(QObject *parent) :
     QObject(parent)
 {
     m_networkManager = new NetworkManager(this);
+    connect(m_networkManager, &NetworkManager::availableChanged, this, &Core::onNetworkManagerAvailableChanged);
 
+    m_bluetoothServer = new BluetoothServer("nymea", this);
 
+    m_nymeaService = new NymeadService(false, this);
 
+    if (!m_networkManager->start()) {
+        qCWarning(dcApplication()) << "Could not start network manager.";
+    }
+}
+
+Core::~Core()
+{
+    delete m_networkManager;
+    m_networkManager = nullptr;
+
+    delete m_bluetoothServer;
+    m_bluetoothServer = nullptr;
+}
+
+void Core::onNetworkManagerAvailableChanged(const bool &available)
+{
+    if (!available) {
+        qCWarning(dcApplication()) << "Networkmanager is not available any more.";
+    } else {
+        qCDebug(dcApplication()) << "Networkmanager is now available.";
+
+    }
 }

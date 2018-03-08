@@ -25,6 +25,8 @@
 #include <QObject>
 
 #include "networkmanager.h"
+#include "nymeadservice.h"
+#include "bluetooth/bluetoothserver.h"
 
 class Core : public QObject
 {
@@ -33,17 +35,20 @@ public:
     static Core* instance();
     void destroy();
 
+    NetworkManager *networkManager() const;
 
 private:
     explicit Core(QObject *parent = nullptr);
+    ~Core();
+
     static Core *s_instance;
 
     NetworkManager *m_networkManager = nullptr;
+    BluetoothServer *m_bluetoothServer = nullptr;
+    NymeadService *m_nymeaService = nullptr;
 
-signals:
-
-public slots:
-
+private slots:
+    void onNetworkManagerAvailableChanged(const bool &available);
 
 };
 

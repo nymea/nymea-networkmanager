@@ -57,13 +57,23 @@ public:
 
     QLowEnergyService *service();
 
+    void setNetworkManagerAvailable(bool available);
+    void setNetworkManagerState(const NetworkManager::NetworkManagerState &state);
+    void setNetworkingEnabled(bool enabled);
+    void setWirelessNetworkingEnabled(bool enabled);
+
     static QLowEnergyServiceData serviceData();
     static QByteArray getNetworkManagerStateByteArray(const NetworkManager::NetworkManagerState &state);
 
 private:
-    QLowEnergyService *m_service;
-    void sendResponse(const NetworkServiceResponse &response);
+    QLowEnergyService *m_service = nullptr;
 
+    bool m_networkManagerAvailable = false;
+    NetworkManager::NetworkManagerState m_state = NetworkManager::NetworkManagerStateUnknown;
+    bool m_networkingEnabled = false;
+    bool m_wirelessNetworkingEnabled = false;
+
+    void sendResponse(const NetworkServiceResponse &response);
     NetworkServiceCommand verifyCommand(const QByteArray &commandData);
 
 private slots:
@@ -77,11 +87,6 @@ private slots:
 
     // Commands
     void processCommand(const NetworkServiceCommand &command);
-
-public slots:
-    bool onNetworkManagerStateChanged();
-    bool onNetworkingEnabledChanged();
-    bool onWirelessEnabledChanged();
 
 };
 

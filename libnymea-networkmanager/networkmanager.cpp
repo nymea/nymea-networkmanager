@@ -28,46 +28,9 @@
 
 /*! Constructs a new \l{NetworkManager} object with the given \a parent. */
 NetworkManager::NetworkManager(QObject *parent) :
-    QObject(parent),
-    m_networkManagerInterface(nullptr),
-    m_available(false),
-    m_state(NetworkManagerStateUnknown),
-    m_connectivityState(NetworkManagerConnectivityStateUnknown),
-    m_networkingEnabled(false),
-    m_wirelessEnabled(false)
+    QObject(parent)
 {
-    // Check DBus connection
-    if (!QDBusConnection::systemBus().isConnected()) {
-        qCWarning(dcNetworkManager()) << "System DBus not connected. NetworkManagre not available.";
-        return;
-    }
 
-    // Create interface
-    m_networkManagerInterface = new QDBusInterface(NetworkManagerUtils::networkManagerServiceString(), NetworkManagerUtils::networkManagerPathString(), NetworkManagerUtils::networkManagerServiceString(), QDBusConnection::systemBus(), this);
-    if(!m_networkManagerInterface->isValid()) {
-        qCWarning(dcNetworkManager()) << "Invalid DBus network manager interface. NetworkManagre not available.";
-        return;
-    }
-
-    m_available = true;
-
-    // Read properties
-    setVersion(m_networkManagerInterface->property("Version").toString());
-    setState((NetworkManagerState)m_networkManagerInterface->property("State").toUInt());
-    setConnectivityState((NetworkManagerConnectivityState)m_networkManagerInterface->property("Connectivity").toUInt());
-    setNetworkingEnabled(m_networkManagerInterface->property("NetworkingEnabled").toBool());
-    setWirelessEnabled(m_networkManagerInterface->property("WirelessEnabled").toBool());
-
-    loadDevices();
-
-    // Connect signals
-    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), NetworkManagerUtils::networkManagerPathString(), NetworkManagerUtils::networkManagerServiceString(), "StateChanged", this, SLOT(onStateChanged(uint)));
-    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), NetworkManagerUtils::networkManagerPathString(), NetworkManagerUtils::networkManagerServiceString(), "DeviceAdded", this, SLOT(onDeviceAdded(QDBusObjectPath)));
-    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), NetworkManagerUtils::networkManagerPathString(), NetworkManagerUtils::networkManagerServiceString(), "DeviceRemoved", this, SLOT(onDeviceRemoved(QDBusObjectPath)));
-    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), NetworkManagerUtils::networkManagerPathString(), NetworkManagerUtils::networkManagerServiceString(), "PropertiesChanged", this, SLOT(onPropertiesChanged(QVariantMap)));
-
-    // Create settings
-    m_networkSettings = new NetworkSettings(this);
 }
 
 NetworkManager::~NetworkManager()
@@ -76,13 +39,13 @@ NetworkManager::~NetworkManager()
 }
 
 /*! Returns true if the network-manager is available on this system. */
-bool NetworkManager::available()
+bool NetworkManager::available() const
 {
     return m_available;
 }
 
 /*! Returns true if wifi is available on this system. */
-bool NetworkManager::wirelessAvailable()
+bool NetworkManager::wirelessAvailable() const
 {
     return !m_wirelessNetworkDevices.isEmpty();
 }
@@ -111,7 +74,7 @@ NetworkDevice *NetworkManager::getNetworkDevice(const QString &interface)
         if (device->interface() == interface)
             return device;
     }
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 /*! Returns the version of the running \l{NetworkManager}. */
@@ -139,7 +102,7 @@ NetworkManager::NetworkManagerConnectivityState NetworkManager::connectivityStat
 }
 
 /*! Connect the given \a interface to a wifi network with the given \a ssid and \a password. Returns the \l{NetworkManagerError} to inform about the result. \sa NetworkManagerError, */
-NetworkManager::NetworkManagerError NetworkManager::connectWifi(const QString &interface, const QString &ssid, const QString &password, const bool &hidden)
+NetworkManager::NetworkManagerError NetworkManager::connectWifi(const QString &interface, const QString &ssid, const QString &password, bool hidden)
 {
     // Check interface
     if (!getNetworkDevice(interface))
@@ -226,7 +189,7 @@ bool NetworkManager::networkingEnabled() const
 }
 
 /*! Returns true if the networking of this \l{NetworkManager} could be \a enabled. */
-bool NetworkManager::enableNetworking(const bool &enabled)
+bool NetworkManager::enableNetworking(bool enabled)
 {
     if (m_networkingEnabled == enabled)
         return true;
@@ -240,11 +203,15 @@ bool NetworkManager::enableNetworking(const bool &enabled)
 }
 
 /*! Sets the networking of this \l{NetworkManager} to \a enabled. */
-void NetworkManager::setNetworkingEnabled(const bool &enabled)
+void NetworkManager::setNetworkingEnabled(bool enabled)
 {
+    if (m_networkingEnabled == enabled)
+        return;
+
     qCDebug(dcNetworkManager()) << "Networking" << (enabled ? "enabled" : "disabled");
+
     m_networkingEnabled = enabled;
-    emit networkingEnabledChanged();
+    emit networkingEnabledChanged(m_networkingEnabled);
 }
 
 /*! Returns true if the wireless networking of this \l{NetworkManager} is enabled. */
@@ -254,12 +221,31 @@ bool NetworkManager::wirelessEnabled() const
 }
 
 /*! Returns true if the wireless networking of this \l{NetworkManager} could be set to \a enabled. */
-bool NetworkManager::enableWireless(const bool &enabled)
+bool NetworkManager::enableWireless(bool enabled)
 {
     if (m_wirelessEnabled == enabled)
         return true;
 
     return m_networkManagerInterface->setProperty("WirelessEnabled", enabled);
+}
+
+bool NetworkManager::isConnectedToLan() const
+{
+    // Check all wireless devices if one is connected
+    foreach (WirelessNetworkDevice *wirelessDevice, wirelessNetworkDevices()) {
+        if (wirelessDevice->deviceState() == NetworkDevice::NetworkDeviceStateActivated) {
+            return true;
+        }
+    }
+
+    // Check all wired devices if one is connected
+    foreach (WiredNetworkDevice *wiredDevice, wiredNetworkDevices()) {
+        if (wiredDevice->deviceState() == NetworkDevice::NetworkDeviceStateActivated) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void NetworkManager::loadDevices()
@@ -299,15 +285,31 @@ QString NetworkManager::networkManagerConnectivityStateToString(const NetworkMan
     return QString(metaEnum.valueToKey(state)).remove("NetworkManagerConnectivityState");
 }
 
-void NetworkManager::setVersion(const QString &version)
+void NetworkManager::setAvailable(bool available)
 {
-    qCDebug(dcNetworkManager()) << "Version:" << version;
-    m_version = version;
-    emit versionChanged();
+    if (m_available == available)
+        return;
+
+    qCDebug(dcNetworkManager()) << "Service is now" << (available ? "available" : "unavailable");
+    m_available = available;
+    emit availableChanged(m_available);
 }
 
-void NetworkManager::setWirelessEnabled(const bool &enabled)
+void NetworkManager::setVersion(const QString &version)
 {
+    if (m_version == version)
+        return;
+
+    qCDebug(dcNetworkManager()) << "Version:" << version;
+    m_version = version;
+    emit versionChanged(m_version);
+}
+
+void NetworkManager::setWirelessEnabled(bool enabled)
+{
+    if (m_wirelessEnabled == enabled)
+        return;
+
     qCDebug(dcNetworkManager()) << "Wireless networking" << (enabled ? "enabled" : "disabled");
     m_wirelessEnabled = enabled;
     emit wirelessEnabledChanged();
@@ -315,6 +317,9 @@ void NetworkManager::setWirelessEnabled(const bool &enabled)
 
 void NetworkManager::setConnectivityState(const NetworkManager::NetworkManagerConnectivityState &connectivityState)
 {
+    if (m_connectivityState == connectivityState)
+        return;
+
     qCDebug(dcNetworkManager()) << "Connectivity state changed:" << networkManagerConnectivityStateToString(connectivityState);
     m_connectivityState = connectivityState;
     emit connectivityStateChanged();
@@ -322,9 +327,24 @@ void NetworkManager::setConnectivityState(const NetworkManager::NetworkManagerCo
 
 void NetworkManager::setState(const NetworkManager::NetworkManagerState &state)
 {
+    if (m_state == state)
+        return;
+
     qCDebug(dcNetworkManager()) << "State changed:" << networkManagerStateToString(state);
     m_state = state;
     emit stateChanged();
+}
+
+void NetworkManager::onServiceRegistered()
+{
+    qCDebug(dcNetworkManager()) << "DBus service registered and available.";
+    // TODO: init stuff
+}
+
+void NetworkManager::onServiceUnregistered()
+{
+    qCWarning(dcNetworkManager()) << "DBus service unregistered.";
+    // TODO: deinit stuff
 }
 
 void NetworkManager::onDeviceAdded(const QDBusObjectPath &deviceObjectPath)
@@ -427,5 +447,88 @@ void NetworkManager::onWiredDeviceChanged()
 {
     WiredNetworkDevice *networkDevice = static_cast<WiredNetworkDevice *>(sender());
     emit wiredDeviceChanged(networkDevice);
+}
+
+bool NetworkManager::start()
+{
+    // Get notification when network-manager appears/disappears on DBus
+    m_serviceWatcher = new QDBusServiceWatcher(NetworkManagerUtils::networkManagerServiceString(), QDBusConnection::systemBus(), QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration, this);
+    connect(m_serviceWatcher, &QDBusServiceWatcher::serviceRegistered, this, &NetworkManager::onServiceRegistered);
+    connect(m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered, this, &NetworkManager::onServiceUnregistered);
+
+    // Check DBus connection
+    if (!QDBusConnection::systemBus().isConnected()) {
+        qCWarning(dcNetworkManager()) << "System DBus not connected. NetworkManagre not available.";
+        m_serviceWatcher->deleteLater();
+        m_serviceWatcher = nullptr;
+        return false;
+    }
+
+    // Create interface
+    m_networkManagerInterface = new QDBusInterface(NetworkManagerUtils::networkManagerServiceString(), NetworkManagerUtils::networkManagerPathString(), NetworkManagerUtils::networkManagerServiceString(), QDBusConnection::systemBus(), this);
+    if(!m_networkManagerInterface->isValid()) {
+        qCWarning(dcNetworkManager()) << "Invalid DBus network manager interface. NetworkManagre not available.";
+        m_serviceWatcher->deleteLater();
+        m_serviceWatcher = nullptr;
+
+        m_networkManagerInterface->deleteLater();
+        m_networkManagerInterface = nullptr;
+        return false;
+    }
+
+    // Init properties
+    setVersion(m_networkManagerInterface->property("Version").toString());
+    setState((NetworkManagerState)m_networkManagerInterface->property("State").toUInt());
+    setConnectivityState((NetworkManagerConnectivityState)m_networkManagerInterface->property("Connectivity").toUInt());
+    setNetworkingEnabled(m_networkManagerInterface->property("NetworkingEnabled").toBool());
+    setWirelessEnabled(m_networkManagerInterface->property("WirelessEnabled").toBool());
+
+    // Load network devices
+    loadDevices();
+
+    // Create settings
+    m_networkSettings = new NetworkSettings(this);
+
+    // Connect signals
+    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), NetworkManagerUtils::networkManagerPathString(), NetworkManagerUtils::networkManagerServiceString(), "StateChanged", this, SLOT(onStateChanged(uint)));
+    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), NetworkManagerUtils::networkManagerPathString(), NetworkManagerUtils::networkManagerServiceString(), "DeviceAdded", this, SLOT(onDeviceAdded(QDBusObjectPath)));
+    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), NetworkManagerUtils::networkManagerPathString(), NetworkManagerUtils::networkManagerServiceString(), "DeviceRemoved", this, SLOT(onDeviceRemoved(QDBusObjectPath)));
+    QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), NetworkManagerUtils::networkManagerPathString(), NetworkManagerUtils::networkManagerServiceString(), "PropertiesChanged", this, SLOT(onPropertiesChanged(QVariantMap)));
+
+    setAvailable(true);
+    return true;
+}
+
+void NetworkManager::stop()
+{
+    foreach (NetworkDevice *device, m_networkDevices) {
+        onDeviceRemoved(device->objectPath());
+    }
+
+    m_wiredNetworkDevices.clear();
+    m_wirelessNetworkDevices.clear();
+
+    if (m_networkSettings) {
+        delete m_networkSettings;
+        m_networkSettings  = nullptr;
+    }
+
+    if (m_networkManagerInterface) {
+        delete m_networkManagerInterface;
+        m_networkManagerInterface  = nullptr;
+    }
+
+    if (m_serviceWatcher) {
+        delete m_serviceWatcher;
+        m_serviceWatcher = nullptr;
+    }
+
+    m_version = QString();
+    m_state = NetworkManagerStateUnknown;
+    m_connectivityState = NetworkManagerConnectivityStateUnknown;
+    m_networkingEnabled = false;
+    m_wirelessEnabled = false;
+
+    setAvailable(false);
 }
 

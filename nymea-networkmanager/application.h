@@ -19,13 +19,19 @@
  *                                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef LOGGINGCATEGORIES_H
-#define LOGGINGCATEGORIES_H
+#ifndef APPLICATION_H
+#define APPLICATION_H
 
-#include <QDebug>
-#include <QLoggingCategory>
+#include <QObject>
+#include <QCoreApplication>
 
-Q_DECLARE_LOGGING_CATEGORY(dcBluetoothServer)
-Q_DECLARE_LOGGING_CATEGORY(dcNymeaService)
 
-#endif // LOGGINGCATEGORIES_H
+class Application : public QCoreApplication
+{
+    Q_OBJECT
+public:
+    explicit Application(int &argc, char **argv);
+
+};
+
+#endif // APPLICATION_H

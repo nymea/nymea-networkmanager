@@ -51,7 +51,7 @@ NetworkConnection::NetworkConnection(const QDBusObjectPath &objectPath, QObject 
     m_connectionSettings = qdbus_cast<ConnectionSettings>(argument);
 }
 
-/*! Delets this \l{NetworkConnection} in the \l{NetworkManager}. */
+/*! Delete this \l{NetworkConnection} in the \l{NetworkManager}. */
 void NetworkConnection::deleteConnection()
 {
     QDBusMessage query = m_connectionInterface->call("Delete");

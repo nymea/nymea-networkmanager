@@ -25,7 +25,8 @@
 #include <QDebug>
 
 /*! Constructs a new \l{NetworkSettings} object with the given \a parent. */
-NetworkSettings::NetworkSettings(QObject *parent) : QObject(parent)
+NetworkSettings::NetworkSettings(QObject *parent) :
+    QObject(parent)
 {
     m_settingsInterface = new QDBusInterface(NetworkManagerUtils::networkManagerServiceString(), NetworkManagerUtils::settingsPathString(), NetworkManagerUtils::settingsInterfaceString(), QDBusConnection::systemBus(), this);
     if(!m_settingsInterface->isValid()) {
@@ -100,5 +101,6 @@ void NetworkSettings::connectionRemoved(const QDBusObjectPath &objectPath)
 void NetworkSettings::propertiesChanged(const QVariantMap &properties)
 {
     Q_UNUSED(properties);
+    // TODO: handle settings changes
     //qCDebug(dcNetworkManager()) << "Settins: properties changed" << properties;
 }

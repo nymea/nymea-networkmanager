@@ -20,6 +20,8 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "wirelessservice.h"
+
+#include "core.h"
 #include "bluetoothuuids.h"
 #include "loggingcategories.h"
 
@@ -28,10 +30,10 @@
 #include <QLowEnergyDescriptorData>
 #include <QLowEnergyCharacteristicData>
 
-WirelessService::WirelessService(QLowEnergyService *service, QObject *parent) :
+WirelessService::WirelessService(QLowEnergyService *service, WirelessNetworkDevice *wirelessDevice, QObject *parent) :
     QObject(parent),
     m_service(service),
-    m_device(nullptr),
+    m_device(wirelessDevice),
     m_readingInputData(false)
 {    
     qCDebug(dcBluetoothServer()) << "Create WirelessService.";
@@ -43,14 +45,8 @@ WirelessService::WirelessService(QLowEnergyService *service, QObject *parent) :
     connect(m_service, SIGNAL(descriptorWritten(QLowEnergyDescriptor, QByteArray)), this, SLOT(descriptorWritten(QLowEnergyDescriptor, QByteArray)));
     connect(m_service, SIGNAL(error(QLowEnergyService::ServiceError)), this, SLOT(serviceError(QLowEnergyService::ServiceError)));
 
-    // Get the wireless network device if there is any
-    if (!Loopd::instance()->networkManager()->wirelessAvailable()) {
-        qCWarning(dcBluetoothServer()) << "WirelessService: There is no wireless network device available";
-        return;
-    }
 
-    qCDebug(dcBluetoothServer()) << "WirelessService: Using" << Loopd::instance()->networkManager()->wirelessNetworkDevices().first();
-    m_device = Loopd::instance()->networkManager()->wirelessNetworkDevices().first();
+    qCDebug(dcBluetoothServer()) << "WirelessService: Using" << m_device;
     connect(m_device, &WirelessNetworkDevice::bitRateChanged, this, &WirelessService::onWirelessDeviceBitRateChanged);
     connect(m_device, &WirelessNetworkDevice::stateChanged, this, &WirelessService::onWirelessDeviceStateChanged);
 }
@@ -89,11 +85,7 @@ QLowEnergyServiceData WirelessService::serviceData()
     wirelessStatusCharacteristicData.setProperties(QLowEnergyCharacteristic::Read | QLowEnergyCharacteristic::Notify);
     wirelessStatusCharacteristicData.addDescriptor(clientConfigDescriptorData);
     wirelessStatusCharacteristicData.setValueLength(1, 1);
-    if (!Loopd::instance()->networkManager()->wirelessAvailable()) {
-        wirelessStatusCharacteristicData.setValue(WirelessService::getWirelessNetworkDeviceState(NetworkDevice::NetworkDeviceStateUnavailable));
-    } else {
-        wirelessStatusCharacteristicData.setValue(WirelessService::getWirelessNetworkDeviceState(Loopd::instance()->networkManager()->wirelessNetworkDevices().first()->deviceState()));
-    }
+    wirelessStatusCharacteristicData.setValue(WirelessService::getWirelessNetworkDeviceState(NetworkDevice::NetworkDeviceStateUnknown));
     serviceData.addCharacteristic(wirelessStatusCharacteristicData);
 
     return serviceData;
@@ -103,7 +95,7 @@ QLowEnergyServiceData WirelessService::serviceData()
 WirelessService::WirelessServiceResponse WirelessService::checkWirelessErrors()
 {
     // Check possible errors
-    if (!Loopd::instance()->networkManager()->available()) {
+    if (!Core::instance()->networkManager()->available()) {
         qCWarning(dcBluetoothServer()) << "WirelessService: The networkmanager is not available.";
         return WirelessServiceResponseNetworkManagerNotAvailable;
     }
@@ -113,12 +105,12 @@ WirelessService::WirelessServiceResponse WirelessService::checkWirelessErrors()
         return WirelessServiceResponseWirelessNotAvailable;
     }
 
-    if (!Loopd::instance()->networkManager()->networkingEnabled()) {
+    if (!Core::instance()->networkManager()->networkingEnabled()) {
         qCWarning(dcBluetoothServer()) << "WirelessService: Networking not enabled";
         return WirelessServiceResponseNetworkingNotEnabled;
     }
 
-    if (!Loopd::instance()->networkManager()->wirelessEnabled()) {
+    if (!Core::instance()->networkManager()->wirelessEnabled()) {
         qCWarning(dcBluetoothServer()) << "WirelessService: Wireless not enabled";
         return WirelessServiceResponseWirelessNotEnabled;
     }
@@ -253,7 +245,7 @@ void WirelessService::commandConnect(const QVariantMap &request)
         return;
     }
 
-    Loopd::instance()->networkManager()->connectWifi(m_device->interface(), parameters.value("e").toString(), parameters.value("p").toString());
+    Core::instance()->networkManager()->connectWifi(m_device->interface(), parameters.value("e").toString(), parameters.value("p").toString());
     streamData(createResponse(WirelessServiceCommandConnect));
 }
 

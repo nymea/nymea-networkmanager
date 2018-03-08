@@ -177,7 +177,7 @@ public:
     static QString deviceStateReasonToString(const NetworkDeviceStateReason &deviceStateReason);
 
 private:
-    QDBusInterface *m_networkDeviceInterface;
+    QDBusInterface *m_networkDeviceInterface = nullptr;
     QDBusObjectPath m_objectPath;
 
     // Device properties
@@ -188,12 +188,12 @@ private:
     QString m_driverVersion;
     QString m_firmwareVersion;
     QString m_physicalPortId;
-    uint m_mtu;
-    uint m_metered;
-    bool m_autoconnect;
-    NetworkDeviceState m_deviceState;
-    NetworkDeviceStateReason m_deviceStateReason;
-    NetworkDeviceType m_deviceType;
+    uint m_mtu = 0;
+    uint m_metered = 0;
+    bool m_autoconnect = false;
+    NetworkDeviceState m_deviceState = NetworkDeviceStateUnknown;
+    NetworkDeviceStateReason m_deviceStateReason = NetworkDeviceStateReasonUnknown;
+    NetworkDeviceType m_deviceType = NetworkDeviceTypeUnknown;
 
     QDBusObjectPath m_activeConnection;
     QDBusObjectPath m_ip4Config;

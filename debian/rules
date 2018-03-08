@@ -12,13 +12,10 @@ $(PREPROCESS_FILES:.in=): %: %.in
 	dh $@ --buildsystem=qmake --parallel
 
 override_dh_install: $(PREPROCESS_FILES:.in=)
-	dh_install --fail-missing
-
-override_dh_auto_build:
-	dh_auto_build
+	dh_install
 
 override_dh_strip:
-	dh_strip --dbg-package=libnymea-networkmanager1-dbg
+	dh_strip --dbg-package=libnymea-networkmanager-dbg
 
 override_dh_auto_clean:
 	dh_auto_clean

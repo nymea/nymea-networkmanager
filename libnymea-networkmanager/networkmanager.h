@@ -23,16 +23,17 @@
 #define NETWORKMANAGER_H
 
 #include <QObject>
-#include <QDBusConnection>
-#include <QDBusInterface>
 #include <QDBusMessage>
 #include <QDBusContext>
 #include <QDBusArgument>
+#include <QDBusInterface>
+#include <QDBusConnection>
+#include <QDBusServiceWatcher>
 
-#include "networkmanagerutils.h"
-#include "wirednetworkdevice.h"
-#include "wirelessnetworkdevice.h"
 #include "networksettings.h"
+#include "wirednetworkdevice.h"
+#include "networkmanagerutils.h"
+#include "wirelessnetworkdevice.h"
 
 // Docs: https://developer.gnome.org/NetworkManager/unstable/spec.html
 
@@ -79,8 +80,8 @@ public:
     explicit NetworkManager(QObject *parent = 0);
     ~NetworkManager();
 
-    bool available();
-    bool wirelessAvailable();
+    bool available() const;
+    bool wirelessAvailable() const;
 
     QList<NetworkDevice *> networkDevices() const;
     QList<WirelessNetworkDevice *> wirelessNetworkDevices() const;
@@ -94,48 +95,54 @@ public:
     QString stateString() const;
     NetworkManagerConnectivityState connectivityState() const;
 
-    NetworkManagerError connectWifi(const QString &interface, const QString &ssid, const QString &password, const bool &hidden = false);
+    NetworkManagerError connectWifi(const QString &interface, const QString &ssid, const QString &password, bool hidden = false);
 
     // Networking
     bool networkingEnabled() const;
-    bool enableNetworking(const bool &enabled);
+    bool enableNetworking(bool enabled);
 
     // Wireless Networking
     bool wirelessEnabled() const;
-    bool enableWireless(const bool &enabled);
+    bool enableWireless(bool enabled);
+
+    // Status methods
+    bool isConnectedToLan() const;
+    bool isOnline() const;
 
 private:
-    QDBusInterface *m_networkManagerInterface;
+    QDBusServiceWatcher *m_serviceWatcher = nullptr;
+    QDBusInterface *m_networkManagerInterface  = nullptr;
+    NetworkSettings *m_networkSettings  = nullptr;
 
     QHash<QDBusObjectPath, NetworkDevice *> m_networkDevices;
     QHash<QDBusObjectPath, WirelessNetworkDevice *> m_wirelessNetworkDevices;
     QHash<QDBusObjectPath, WiredNetworkDevice *> m_wiredNetworkDevices;
 
-    NetworkSettings *m_networkSettings;
-
-    bool m_available;
+    bool m_available = false;
 
     QString m_version;
 
-    NetworkManagerState m_state;
-    NetworkManagerConnectivityState m_connectivityState;
-    bool m_networkingEnabled;
-    bool m_wirelessEnabled;
+    NetworkManagerState m_state = NetworkManagerStateUnknown;
+    NetworkManagerConnectivityState m_connectivityState = NetworkManagerConnectivityStateUnknown;
+    bool m_networkingEnabled = false;
+    bool m_wirelessEnabled = false;
 
     void loadDevices();
 
     static QString networkManagerStateToString(const NetworkManagerState &state);
     static QString networkManagerConnectivityStateToString(const NetworkManagerConnectivityState &state);
 
+    void setAvailable(bool available);
     void setVersion(const QString &version);
-    void setNetworkingEnabled(const bool &enabled);
-    void setWirelessEnabled(const bool &enabled);
+    void setNetworkingEnabled(bool enabled);
+    void setWirelessEnabled(bool enabled);
     void setConnectivityState(const NetworkManagerConnectivityState &connectivityState);
     void setState(const NetworkManagerState &state);
 
 signals:
-    void versionChanged();
-    void networkingEnabledChanged();
+    void availableChanged(bool available);
+    void versionChanged(const QString &version);
+    void networkingEnabledChanged(bool enabled);
     void wirelessEnabledChanged();
     void wirelessAvailableChanged();
     void stateChanged();
@@ -150,12 +157,20 @@ signals:
     void wiredDeviceChanged(WiredNetworkDevice *wiredDevice);
 
 private slots:
+    void onServiceRegistered();
+    void onServiceUnregistered();
+
     void onDeviceAdded(const QDBusObjectPath &deviceObjectPath);
     void onDeviceRemoved(const QDBusObjectPath &deviceObjectPath);
     void onPropertiesChanged(const QVariantMap &properties);
 
     void onWirelessDeviceChanged();
     void onWiredDeviceChanged();
+
+public slots:
+    bool start();
+    void stop();
+
 };
 
 #endif // NETWORKMANAGER_H

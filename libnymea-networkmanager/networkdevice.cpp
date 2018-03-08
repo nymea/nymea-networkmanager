@@ -138,11 +138,7 @@
 /*! Constructs a new \l{NetworkDevice} with the given dbus \a objectPath and \a parent. */
 NetworkDevice::NetworkDevice(const QDBusObjectPath &objectPath, QObject *parent) :
     QObject(parent),
-    m_objectPath(objectPath),
-    m_mtu(0),
-    m_metered(0),
-    m_deviceState(NetworkDeviceStateUnknown),
-    m_deviceStateReason(NetworkDeviceStateReasonUnknown)
+    m_objectPath(objectPath)
 {
     QDBusConnection systemBus = QDBusConnection::systemBus();
     if (!systemBus.isConnected()) {

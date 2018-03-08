@@ -39,7 +39,6 @@ private:
     void streamData(const QVariantMap &responseMap);
     QVariantMap createResponse(const SystemServiceCommand &command, const SystemServiceResponse &responseCode = SystemServiceResponseSuccess);
 
-
 private slots:
     // Service
     void characteristicChanged(const QLowEnergyCharacteristic &characteristic, const QByteArray &value);

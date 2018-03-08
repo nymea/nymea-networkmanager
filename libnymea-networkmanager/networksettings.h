@@ -42,12 +42,10 @@ public:
     QList<NetworkConnection *> connections() const;
 
 private:
-    QDBusInterface *m_settingsInterface;
+    QDBusInterface *m_settingsInterface = nullptr;
     QHash<QDBusObjectPath, NetworkConnection *> m_connections;
 
     void loadConnections();
-
-signals:
 
 private slots:
     void connectionAdded(const QDBusObjectPath &objectPath);

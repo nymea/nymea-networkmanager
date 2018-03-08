@@ -61,16 +61,17 @@ public:
     };
     Q_ENUM(WirelessServiceResponse)
 
-    explicit WirelessService(QLowEnergyService *service, QObject *parent = 0);
+    explicit WirelessService(QLowEnergyService *service, WirelessNetworkDevice *wirelessDevice, QObject *parent = 0);
+
     QLowEnergyService *service();
 
     static QLowEnergyServiceData serviceData();
 
 private:
-    QLowEnergyService *m_service;
-    WirelessNetworkDevice *m_device;
+    QLowEnergyService *m_service = nullptr;
+    WirelessNetworkDevice *m_device = nullptr;
 
-    bool m_readingInputData;
+    bool m_readingInputData = false;
     QByteArray m_inputDataStream;
 
     WirelessServiceResponse checkWirelessErrors();

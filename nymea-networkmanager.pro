@@ -1,5 +1,5 @@
 TEMPLATE=subdirs
 
-networkmanager.depends = libnymea-networkmanager
+nymea-networkmanager.depends = libnymea-networkmanager
 
 SUBDIRS += libnymea-networkmanager nymea-networkmanager

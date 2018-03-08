@@ -20,11 +20,12 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <QCoreApplication>
-#include <QLoggingCategory>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 
 #include "core.h"
+#include "application.h"
+#include "loggingcategories.h"
 
 static const char *const normal = "\033[0m";
 static const char *const warning = "\e[33m";
@@ -72,24 +73,38 @@ static void consoleLogHandler(QtMsgType type, const QMessageLogContext& context,
 }
 
 
-
 int main(int argc, char *argv[])
 {
     qInstallMessageHandler(consoleLogHandler);
 
-    QCoreApplication application(argc, argv);
-    application.setApplicationName("loopd");
-    application.setOrganizationName("guh");
+    Application application(argc, argv);
+    application.setApplicationName("nymea-networkmanager");
+    application.setOrganizationName("nymea");
     application.setApplicationVersion("0.0.1");
 
     // Command line parser
     QCommandLineParser parser;
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.setApplicationDescription(QString("\nThis daemon allows to configure a wifi network with a bluetooth low energy connection.\n\nCopyright %1 2018 Simon Stürz <simon.stuerz@guh.io>").arg(QChar(0xA9)));
+    parser.setApplicationDescription(QString("\nThis daemon allows to configure a wifi network using a bluetooth low energy connection.\n\nCopyright %1 2018 Simon Stürz <simon.stuerz@guh.io>").arg(QChar(0xA9)));
+
+    // TODO: set options
 
     parser.process(application);
 
+    // Enable debug categories
+    s_loggingFilters.insert("Application", true);
+    s_loggingFilters.insert("BluetoothServer", true);
+    s_loggingFilters.insert("NetworkManager", true);
+    s_loggingFilters.insert("NymeaService", true);
+
+    QLoggingCategory::installFilter(loggingCategoryFilter);
+
+    qCDebug(dcApplication()) << "=====================================";
+    qCDebug(dcApplication()) << "Starting nymea-networkmanager" << application.applicationVersion();
+    qCDebug(dcApplication()) << "=====================================";
+
+    // Start core
     Core::instance();
 
     return application.exec();

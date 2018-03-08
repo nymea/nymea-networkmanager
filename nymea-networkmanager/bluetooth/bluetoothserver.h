@@ -64,9 +64,6 @@ private:
 
     NetworkService *m_networkService = nullptr;
     WirelessService *m_wirelessService = nullptr;
-    SystemService *m_systemService = nullptr;
-
-    QTimer *m_advertisingTimer = nullptr;
 
     bool m_running = false;
     bool m_connected = false;
@@ -94,8 +91,6 @@ private slots:
     void onDisconnected();
     void onControllerStateChanged(const QLowEnergyController::ControllerState &state);
 
-    void onAdvertisingTimeout();
-
     // Services
     void characteristicChanged(const QLowEnergyCharacteristic &characteristic, const QByteArray &value);
     void characteristicRead(const QLowEnergyCharacteristic &characteristic, const QByteArray &value);
@@ -105,8 +100,14 @@ private slots:
     void serviceError(const QLowEnergyService::ServiceError &error);
 
 public slots:
-    void start();
+    void start(WirelessNetworkDevice *wirelessDevice);
     void stop();
+
+    // Network manager
+    void onNetworkManagerAvailableChanged(bool available);
+    void onNetworkingEnabledChanged(bool enabled);
+    void onWirelessNetworkingEnabledChanged(bool enabled);
+    void onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state);
 
 };
 

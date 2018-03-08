@@ -55,10 +55,9 @@ public:
 
 private:
     QDBusObjectPath m_objectPath;
-    QDBusInterface *m_connectionInterface;
+    QDBusInterface *m_connectionInterface = nullptr;
 
     ConnectionSettings m_connectionSettings;
-
 };
 
 QDebug operator<<(QDebug debug, NetworkConnection *networkConnection);

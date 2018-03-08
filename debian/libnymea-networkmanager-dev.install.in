@@ -1,0 +1,3 @@
+usr/lib/@DEB_HOST_MULTIARCH@/libnymea-networkmanager.so
+usr/include/libnymea-networkmanager/* usr/include/libnymea-networkmanager
+
