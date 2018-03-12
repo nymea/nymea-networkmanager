@@ -36,7 +36,7 @@ class WirelessAccessPoint : public QObject
     Q_FLAGS(ApSecurityModes)
 
 public:
-    enum ApSecurityMode{
+    enum ApSecurityMode {
         ApSecurityModeNone         = 0x000,
         ApSecurityModePairWep40    = 0x001,
         ApSecurityModePairWep104   = 0x002,
@@ -50,7 +50,6 @@ public:
         ApSecurityModeKeyMgmt8021X = 0x200,
     };
     Q_DECLARE_FLAGS(ApSecurityModes, ApSecurityMode)
-
 
     explicit WirelessAccessPoint(const QDBusObjectPath &objectPath, QObject *parent = 0);
 

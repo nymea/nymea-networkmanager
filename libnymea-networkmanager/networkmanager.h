@@ -55,14 +55,16 @@ public:
         NetworkManagerStateConnectedSite = 60,
         NetworkManagerStateConnectedGlobal = 70
     };
+    Q_ENUM(NetworkManagerState)
 
     enum NetworkManagerConnectivityState {
-        NetworkManagerConnectivityStateUnknown = 1,
-        NetworkManagerConnectivityStateNone = 2,
-        NetworkManagerConnectivityStatePortal = 3,
-        NetworkManagerConnectivityStateLimited = 4,
-        NetworkManagerConnectivityStateFull = 5
+        NetworkManagerConnectivityStateUnknown = 0,
+        NetworkManagerConnectivityStateNone = 1,
+        NetworkManagerConnectivityStatePortal = 2,
+        NetworkManagerConnectivityStateLimited = 3,
+        NetworkManagerConnectivityStateFull = 4
     };
+    Q_ENUM(NetworkManagerConnectivityState)
 
     enum NetworkManagerError {
         NetworkManagerErrorNoError,
@@ -76,6 +78,7 @@ public:
         NetworkManagerErrorNetworkingDisabled,
         NetworkManagerErrorNetworkManagerNotAvailable
     };
+    Q_ENUM(NetworkManagerError)
 
     explicit NetworkManager(QObject *parent = 0);
     ~NetworkManager();
@@ -105,10 +108,6 @@ public:
     bool wirelessEnabled() const;
     bool enableWireless(bool enabled);
 
-    // Status methods
-    bool isConnectedToLan() const;
-    bool isOnline() const;
-
 private:
     QDBusServiceWatcher *m_serviceWatcher = nullptr;
     QDBusInterface *m_networkManagerInterface  = nullptr;
@@ -119,9 +118,7 @@ private:
     QHash<QDBusObjectPath, WiredNetworkDevice *> m_wiredNetworkDevices;
 
     bool m_available = false;
-
     QString m_version;
-
     NetworkManagerState m_state = NetworkManagerStateUnknown;
     NetworkManagerConnectivityState m_connectivityState = NetworkManagerConnectivityStateUnknown;
     bool m_networkingEnabled = false;
@@ -143,10 +140,10 @@ signals:
     void availableChanged(bool available);
     void versionChanged(const QString &version);
     void networkingEnabledChanged(bool enabled);
-    void wirelessEnabledChanged();
-    void wirelessAvailableChanged();
-    void stateChanged();
-    void connectivityStateChanged();
+    void wirelessEnabledChanged(bool enabled);
+    void wirelessAvailableChanged(bool available);
+    void stateChanged(const NetworkManagerState &state);
+    void connectivityStateChanged(const NetworkManagerConnectivityState &state);
 
     void wirelessDeviceAdded(WirelessNetworkDevice *wirelessDevice);
     void wirelessDeviceRemoved(const QString &interface);

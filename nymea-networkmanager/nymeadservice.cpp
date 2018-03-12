@@ -32,7 +32,7 @@ bool NymeadService::available() const
 void NymeadService::enableBluetooth(const bool &enable)
 {
     if (!m_nymeadHardwareInterface) {
-        qCCritical(dcNymeaService()) << "Could not enable/disable bluetooth hardware resource. D-Bus interface not available.";
+        qCWarning(dcNymeaService()) << "Could not enable/disable bluetooth hardware resource. D-Bus interface not available.";
         return;
     }
 
@@ -48,7 +48,7 @@ void NymeadService::enableBluetooth(const bool &enable)
 void NymeadService::pushButtonPressed()
 {
     if (!m_pushButtonAgent) {
-        qCCritical(dcNymeaService()) << "Could not press pushbutton. Pushbutton agent not available.";
+        qCWarning(dcNymeaService()) << "Could not press pushbutton. Pushbutton agent not available.";
         return;
     }
 

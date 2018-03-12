@@ -127,7 +127,7 @@ NetworkManager::NetworkManagerError NetworkManager::connectWifi(const QString &i
 
     QVariantMap connectionSettings;
     connectionSettings.insert("autoconnect", true);
-    connectionSettings.insert("id", ssid + " (loop)");
+    connectionSettings.insert("id", ssid);
     connectionSettings.insert("uuid", QUuid::createUuid().toString().remove("{").remove("}"));
     connectionSettings.insert("type", "802-11-wireless");
 
@@ -229,25 +229,6 @@ bool NetworkManager::enableWireless(bool enabled)
     return m_networkManagerInterface->setProperty("WirelessEnabled", enabled);
 }
 
-bool NetworkManager::isConnectedToLan() const
-{
-    // Check all wireless devices if one is connected
-    foreach (WirelessNetworkDevice *wirelessDevice, wirelessNetworkDevices()) {
-        if (wirelessDevice->deviceState() == NetworkDevice::NetworkDeviceStateActivated) {
-            return true;
-        }
-    }
-
-    // Check all wired devices if one is connected
-    foreach (WiredNetworkDevice *wiredDevice, wiredNetworkDevices()) {
-        if (wiredDevice->deviceState() == NetworkDevice::NetworkDeviceStateActivated) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 void NetworkManager::loadDevices()
 {
     // Get network devices
@@ -312,7 +293,7 @@ void NetworkManager::setWirelessEnabled(bool enabled)
 
     qCDebug(dcNetworkManager()) << "Wireless networking" << (enabled ? "enabled" : "disabled");
     m_wirelessEnabled = enabled;
-    emit wirelessEnabledChanged();
+    emit wirelessEnabledChanged(m_wirelessEnabled);
 }
 
 void NetworkManager::setConnectivityState(const NetworkManager::NetworkManagerConnectivityState &connectivityState)
@@ -322,7 +303,7 @@ void NetworkManager::setConnectivityState(const NetworkManager::NetworkManagerCo
 
     qCDebug(dcNetworkManager()) << "Connectivity state changed:" << networkManagerConnectivityStateToString(connectivityState);
     m_connectivityState = connectivityState;
-    emit connectivityStateChanged();
+    emit connectivityStateChanged(m_connectivityState);
 }
 
 void NetworkManager::setState(const NetworkManager::NetworkManagerState &state)
@@ -332,7 +313,7 @@ void NetworkManager::setState(const NetworkManager::NetworkManagerState &state)
 
     qCDebug(dcNetworkManager()) << "State changed:" << networkManagerStateToString(state);
     m_state = state;
-    emit stateChanged();
+    emit stateChanged(m_state);
 }
 
 void NetworkManager::onServiceRegistered()
@@ -408,7 +389,7 @@ void NetworkManager::onDeviceRemoved(const QDBusObjectPath &deviceObjectPath)
         qCDebug(dcNetworkManager()) << "[-]" << m_wirelessNetworkDevices.value(deviceObjectPath);
         m_wirelessNetworkDevices.remove(deviceObjectPath);
         if (!wirelessAvailable())
-            emit wirelessAvailableChanged();
+            emit wirelessAvailableChanged(wirelessAvailable());
 
         emit wirelessDeviceRemoved(networkDevice->interface());
     } else {

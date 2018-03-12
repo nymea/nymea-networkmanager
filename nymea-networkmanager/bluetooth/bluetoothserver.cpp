@@ -155,7 +155,7 @@ QLowEnergyServiceData BluetoothServer::genericAttributeServiceData()
     return serviceData;
 }
 
-void BluetoothServer::setRunning(const bool &running)
+void BluetoothServer::setRunning(bool running)
 {
     if (m_running == running)
         return;
@@ -164,7 +164,7 @@ void BluetoothServer::setRunning(const bool &running)
     emit runningChanged(m_running);
 }
 
-void BluetoothServer::setConnected(const bool &connected)
+void BluetoothServer::setConnected(bool connected)
 {
     if (m_connected == connected)
         return;
@@ -218,7 +218,6 @@ void BluetoothServer::onDisconnected()
 {
     qCDebug(dcBluetoothServer()) << "Client disconnected";
     setConnected(false);
-    stop();
 }
 
 void BluetoothServer::onControllerStateChanged(const QLowEnergyController::ControllerState &state)
@@ -367,14 +366,14 @@ void BluetoothServer::start(WirelessNetworkDevice *wirelessDevice)
     QLowEnergyAdvertisingData advertisingData;
     advertisingData.setDiscoverability(QLowEnergyAdvertisingData::DiscoverabilityGeneral);
     advertisingData.setIncludePowerLevel(true);
-    advertisingData.setLocalName("Loop-box");
+    advertisingData.setLocalName("nymea");
     // TODO: set guh manufacturer SIG data
 
     // Note: start advertising in 100 ms interval, this makes the device better discoverable on certain phones
     QLowEnergyAdvertisingParameters advertisingParameters;
     advertisingParameters.setInterval(100,100);
 
-    qCDebug(dcBluetoothServer()) << "Start advertising loopd" << m_localDevice->address().toString();
+    qCDebug(dcBluetoothServer()) << "Start advertising" << advertisingData.localName() << m_localDevice->address().toString();
     m_controller->startAdvertising(advertisingParameters, advertisingData, advertisingData);
 }
 
@@ -384,6 +383,9 @@ void BluetoothServer::stop()
         m_controller->disconnectFromDevice();
         return;
     }
+
+    if (!running())
+        return;
 
     qCDebug(dcBluetoothServer()) << "-------------------------------------";
     qCDebug(dcBluetoothServer()) << "Stopping bluetooth server.";

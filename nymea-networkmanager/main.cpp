@@ -88,15 +88,15 @@ int main(int argc, char *argv[])
     parser.addVersionOption();
     parser.setApplicationDescription(QString("\nThis daemon allows to configure a wifi network using a bluetooth low energy connection.\n\nCopyright %1 2018 Simon Stürz <simon.stuerz@guh.io>").arg(QChar(0xA9)));
 
-    // TODO: set options
-
+    QCommandLineOption debugOption(QStringList() << "d" << "debug", "Enable more debug output.");
+    parser.addOption(debugOption);
     parser.process(application);
 
     // Enable debug categories
     s_loggingFilters.insert("Application", true);
-    s_loggingFilters.insert("BluetoothServer", true);
-    s_loggingFilters.insert("NetworkManager", true);
-    s_loggingFilters.insert("NymeaService", true);
+    s_loggingFilters.insert("BluetoothServer", parser.isSet(debugOption));
+    s_loggingFilters.insert("NetworkManager", parser.isSet(debugOption) );
+    s_loggingFilters.insert("NymeaService", parser.isSet(debugOption));
 
     QLoggingCategory::installFilter(loggingCategoryFilter);
 

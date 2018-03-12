@@ -36,6 +36,8 @@ public:
     void destroy();
 
     NetworkManager *networkManager() const;
+    BluetoothServer *bluetoothServer() const;
+    NymeadService *nymeaService() const;
 
 private:
     explicit Core(QObject *parent = nullptr);
@@ -47,8 +49,17 @@ private:
     BluetoothServer *m_bluetoothServer = nullptr;
     NymeadService *m_nymeaService = nullptr;
 
+    void evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state);
+
+    void startService();
+    void stopService();
+
 private slots:
+    void onBluetoothServerRunningChanged(bool running);
+    void onBluetoothServerConnectedChanged(bool connected);
+
     void onNetworkManagerAvailableChanged(const bool &available);
+    void onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state);
 
 };
 

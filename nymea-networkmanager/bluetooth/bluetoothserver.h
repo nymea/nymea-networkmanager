@@ -72,12 +72,12 @@ private:
     QLowEnergyServiceData genericAccessServiceData();
     QLowEnergyServiceData genericAttributeServiceData();
 
-    void setRunning(const bool &running);
-    void setConnected(const bool &connected);
+    void setRunning(bool running);
+    void setConnected(bool connected);
 
 signals:
-    void runningChanged(const bool &running);
-    void connectedChanged(const bool &connected);
+    void runningChanged(bool running);
+    void connectedChanged(bool connected);
 
 private slots:
     // Local bluetooth device

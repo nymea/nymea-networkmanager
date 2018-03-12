@@ -55,6 +55,7 @@ public:
         NetworkDeviceStateDeactivating = 110,
         NetworkDeviceStateFailed = 120
     };
+    Q_ENUM(NetworkDeviceState)
 
     enum NetworkDeviceStateReason {
         NetworkDeviceStateReasonNone = 0,
@@ -121,6 +122,7 @@ public:
         NetworkDeviceStateReasonParentChanged = 61,
         NetworkDeviceStateReasonParentManagedChanged = 62
     };
+    Q_ENUM(NetworkDeviceStateReason)
 
     enum NetworkDeviceType {
         NetworkDeviceTypeUnknown = 0,
@@ -143,6 +145,7 @@ public:
         NetworkDeviceTypeVXLan = 19,
         NetworkDeviceTypeVEth = 20,
     };
+    Q_ENUM(NetworkDeviceType)
 
     explicit NetworkDevice(const QDBusObjectPath &objectPath, QObject *parent = 0);
 
