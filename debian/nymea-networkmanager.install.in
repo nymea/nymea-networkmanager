@@ -1,1 +1,2 @@
 usr/bin/nymea-networkmanager
+nymea-networkmanager.service /lib/systemd/system/

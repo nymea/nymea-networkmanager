@@ -9,7 +9,7 @@ $(PREPROCESS_FILES:.in=): %: %.in
 	sed 's,/@DEB_HOST_MULTIARCH@,$(DEB_HOST_MULTIARCH:%=/%),g' $< > $@
 
 %:
-	dh $@ --buildsystem=qmake --parallel
+	dh $@ --buildsystem=qmake --parallel --with systemd
 
 override_dh_install: $(PREPROCESS_FILES:.in=)
 	dh_install

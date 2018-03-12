@@ -76,14 +76,17 @@ Core::Core(QObject *parent) :
 
 Core::~Core()
 {
+    qCDebug(dcApplication()) << "Shutting down nymea service";
     delete m_nymeaService;
     m_nymeaService = nullptr;
 
-    delete m_networkManager;
-    m_networkManager = nullptr;
-
+    qCDebug(dcApplication()) << "Shutting down bluetooth service";
     delete m_bluetoothServer;
     m_bluetoothServer = nullptr;
+
+    qCDebug(dcApplication()) << "Shutting down network-manager service";
+    delete m_networkManager;
+    m_networkManager = nullptr;
 }
 
 void Core::evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state)
