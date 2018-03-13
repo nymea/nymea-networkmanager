@@ -47,14 +47,21 @@ class BluetoothServer : public QObject
     Q_OBJECT
 public:
 
-    explicit BluetoothServer(const QString &machineId, QObject *parent = 0);
+    explicit BluetoothServer(QObject *parent = 0);
     ~BluetoothServer();
+
+    QString machineId() const;
+    void setMachineId(const QString &machineId);
+
+    QString advertiseName() const;
+    void setAdvertiseName(const QString &advertiseName);
 
     bool running() const;
     bool connected() const;
 
 private:
-    QString m_machineId;
+    QString m_machineId = "nymea-box";
+    QString m_advertiseName = "nymea";
     QBluetoothLocalDevice *m_localDevice = nullptr;
     QLowEnergyController *m_controller = nullptr;
 

@@ -88,7 +88,7 @@ Core::Core(QObject *parent) :
     connect(m_networkManager, &NetworkManager::availableChanged, this, &Core::onNetworkManagerAvailableChanged);
     connect(m_networkManager, &NetworkManager::stateChanged, this, &Core::onNetworkManagerStateChanged);
 
-    m_bluetoothServer = new BluetoothServer("nymea-box", this);
+    m_bluetoothServer = new BluetoothServer(this);
     connect(m_bluetoothServer, &BluetoothServer::runningChanged, this, &Core::onBluetoothServerRunningChanged);
     connect(m_bluetoothServer, &BluetoothServer::connectedChanged, this, &Core::onBluetoothServerConnectedChanged);
 
@@ -149,6 +149,8 @@ void Core::startService()
 
     // Start the bluetooth server for this wireless device
     qCDebug(dcApplication()) << "Start bluetooth service";
+    m_bluetoothServer->setAdvertiseName(m_advertiseName);
+    m_bluetoothServer->setMachineId(m_platformName);
     m_bluetoothServer->start(m_networkManager->wirelessNetworkDevices().first());
 }
 

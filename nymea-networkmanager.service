@@ -1,5 +1,5 @@
 [Unit]
-Description=Daemon for nymea to configure wifi network using Bluetooth LE.
+Description=Daemon for nymea to configure wifi network using a Bluetooth LE connection
 Documentation=https://github.com/guh/nymea-networkmanager
 After=network.target
 

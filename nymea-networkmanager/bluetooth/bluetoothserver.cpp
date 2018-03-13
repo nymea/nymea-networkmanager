@@ -26,9 +26,8 @@
 #include <QJsonDocument>
 #include <QCoreApplication>
 
-BluetoothServer::BluetoothServer(const QString &machineId, QObject *parent) :
-    QObject(parent),
-    m_machineId(machineId)
+BluetoothServer::BluetoothServer(QObject *parent) :
+    QObject(parent)
 {
 
 }
@@ -42,6 +41,26 @@ BluetoothServer::~BluetoothServer()
     if (m_localDevice)
         m_localDevice->setHostMode(QBluetoothLocalDevice::HostConnectable);
 
+}
+
+QString BluetoothServer::machineId() const
+{
+    return m_machineId;
+}
+
+void BluetoothServer::setMachineId(const QString &machineId)
+{
+    m_machineId = machineId;
+}
+
+QString BluetoothServer::advertiseName() const
+{
+    return m_advertiseName;
+}
+
+void BluetoothServer::setAdvertiseName(const QString &advertiseName)
+{
+    m_advertiseName = advertiseName;
 }
 
 bool BluetoothServer::running() const
@@ -63,28 +82,23 @@ QLowEnergyServiceData BluetoothServer::deviceInformationServiceData()
     // Model number string 0x2a24
     QLowEnergyCharacteristicData modelNumberCharData;
     modelNumberCharData.setUuid(QBluetoothUuid::ModelNumberString);
-    if (m_machineId.isEmpty()) {
-        modelNumberCharData.setValue(QString("N.A.").toUtf8());
-    } else {
-        modelNumberCharData.setValue(m_machineId.toUtf8());
-    }
-
+    modelNumberCharData.setValue(m_machineId.toUtf8());
     modelNumberCharData.setProperties(QLowEnergyCharacteristic::Read);
     serviceData.addCharacteristic(modelNumberCharData);
 
-//    // Firmware revision string 0x2a26
-//    QLowEnergyCharacteristicData firmwareRevisionCharData;
-//    firmwareRevisionCharData.setUuid(QBluetoothUuid::FirmwareRevisionString);
-//    firmwareRevisionCharData.setValue(QString("1.0.0").toUtf8());
-//    firmwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
-//    serviceData.addCharacteristic(firmwareRevisionCharData);
+    // Firmware revision string 0x2a26
+    QLowEnergyCharacteristicData firmwareRevisionCharData;
+    firmwareRevisionCharData.setUuid(QBluetoothUuid::FirmwareRevisionString);
+    firmwareRevisionCharData.setValue(QString("1.0.0").toUtf8());
+    firmwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
+    serviceData.addCharacteristic(firmwareRevisionCharData);
 
-//    // Hardware revision string 0x2a27
-//    QLowEnergyCharacteristicData hardwareRevisionCharData;
-//    hardwareRevisionCharData.setUuid(QBluetoothUuid::HardwareRevisionString);
-//    hardwareRevisionCharData.setValue(QString("1.0.0").toUtf8());
-//    hardwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
-//    serviceData.addCharacteristic(hardwareRevisionCharData);
+    // Hardware revision string 0x2a27
+    QLowEnergyCharacteristicData hardwareRevisionCharData;
+    hardwareRevisionCharData.setUuid(QBluetoothUuid::HardwareRevisionString);
+    hardwareRevisionCharData.setValue(QString("1.0.0").toUtf8());
+    hardwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
+    serviceData.addCharacteristic(hardwareRevisionCharData);
 
     // Software revision string 0x2a28
     QLowEnergyCharacteristicData softwareRevisionCharData;
@@ -346,7 +360,6 @@ void BluetoothServer::start(WirelessNetworkDevice *wirelessDevice)
     m_localDevice->setHostMode(QBluetoothLocalDevice::HostDiscoverable);
     m_localDevice->powerOn();
 
-
     // Bluetooth low energy periperal controller
     m_controller = QLowEnergyController::createPeripheral(this);
     connect(m_controller, &QLowEnergyController::stateChanged, this, &BluetoothServer::onControllerStateChanged);
@@ -366,7 +379,7 @@ void BluetoothServer::start(WirelessNetworkDevice *wirelessDevice)
     QLowEnergyAdvertisingData advertisingData;
     advertisingData.setDiscoverability(QLowEnergyAdvertisingData::DiscoverabilityGeneral);
     advertisingData.setIncludePowerLevel(true);
-    advertisingData.setLocalName("nymea");
+    advertisingData.setLocalName(m_advertiseName);
 
     // TODO: set guh manufacturer SIG data
 

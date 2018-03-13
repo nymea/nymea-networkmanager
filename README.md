@@ -1,19 +1,22 @@
 # nymea-networkmanager
 
-This daemon allows to set up the wireless network using a bluetooth LE connection.
+This daemon allows to set up the wireless network using a bluetooth LE connection. The daemon will automatically start a bluetooth low energy server 
+if the system is currently not connected to any network. Once the system is connected, the daemon will shutdown the bluetooth server. 
 
 
 # Bluetooth GATT profile
 -------------------------------------------
 
-In order to connect to nymea-networkmanager using bluetooth low energy, once has to perform a bluetooth discovery, filter for all low energy devices and connect to the device with the name `nymea`. The remote address type for connecting to `nymea-networkmanager` is `public`.
+In order to connect to nymea-networkmanager using bluetooth low energy, once has to perform a bluetooth discovery, filter for all low energy 
+devices and connect to the device with the name `nymea`. The remote address type for connecting to `nymea-networkmanager` is `public`.
 
 ## Behaviour
 
 
 ## Notifications
 
-In order to enable/disable the notification for a characteristic with the `notify` flag, a client has to write the value `0x0100` for enabling and `0x0000` for disabling to the descriptor `0x2902` of the corresponding characteristic.
+In order to enable/disable the notification for a characteristic with the `notify` flag, a client has to write the value `0x0100` for 
+enabling and `0x0000` for disabling to the descriptor `0x2902` of the corresponding characteristic.
 
 ## Services:
 
@@ -35,7 +38,8 @@ In order to enable/disable the notification for a characteristic with the `notif
 
 #### **S**: Generic Access
 
-> Default service for Bluetooth LE GATT devices. More information can be found [here](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.generic_access.xml).
+> Default service for Bluetooth LE GATT devices. More information can be 
+found [here](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.generic_access.xml).
 
 #### **S**: Generic Attribute
 
