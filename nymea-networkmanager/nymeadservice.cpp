@@ -31,14 +31,14 @@ bool NymeadService::available() const
 
 void NymeadService::enableBluetooth(const bool &enable)
 {
-    if (!m_nymeadHardwareInterface) {
+    if (!m_nymeadHardwareBluetoothInterface) {
         qCWarning(dcNymeaService()) << "Could not enable/disable bluetooth hardware resource. D-Bus interface not available.";
         return;
     }
 
     qCDebug(dcNymeaService()) << "Request nymea to" << (enable ? "enable" : "disable") << "bluetooth resources";
 
-    QDBusMessage query = m_nymeadHardwareInterface->call("EnableBluetooth", enable);
+    QDBusMessage query = m_nymeadHardwareBluetoothInterface->call("EnableBluetooth", enable);
     if(query.type() != QDBusMessage::ReplyMessage) {
         qCWarning(dcNymeaService()) << "Could not enable/disable bluetooth on dbus:" << query.errorName() << query.errorMessage();
         return;
@@ -91,6 +91,14 @@ bool NymeadService::init()
         return false;
     }
 
+    m_nymeadHardwareBluetoothInterface = new QDBusInterface("io.guh.nymead", "/io/guh/nymead/HardwareManager/BluetoothLEManager", "io.guh.nymead", QDBusConnection::systemBus(), this);
+    if (!m_nymeadHardwareBluetoothInterface->isValid()) {
+        qCWarning(dcNymeaService()) << "Invalid D-Bus HardwareManager BluetoothLE interface.";
+        m_nymeadHardwareBluetoothInterface->deleteLater();
+        m_nymeadHardwareBluetoothInterface = nullptr;
+        return false;
+    }
+
     setAvailable(true);
     return true;
 }
@@ -115,6 +123,11 @@ void NymeadService::serviceUnregistered(const QString &serviceName)
     if (m_nymeadHardwareInterface) {
         m_nymeadHardwareInterface->deleteLater();
         m_nymeadHardwareInterface = nullptr;
+    }
+
+    if (m_nymeadHardwareBluetoothInterface) {
+        m_nymeadHardwareBluetoothInterface->deleteLater();
+        m_nymeadHardwareBluetoothInterface = nullptr;
     }
 
     setAvailable(false);

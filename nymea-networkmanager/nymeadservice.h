@@ -22,7 +22,9 @@ public:
 private:
     QDBusServiceWatcher *m_serviceWatcher = nullptr;
     PushButtonAgent *m_pushButtonAgent = nullptr;
+
     QDBusInterface *m_nymeadHardwareInterface = nullptr;
+    QDBusInterface *m_nymeadHardwareBluetoothInterface = nullptr;
 
     bool m_pushbuttonEnabled = false;
     bool m_available = false;
