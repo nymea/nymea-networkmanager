@@ -72,19 +72,19 @@ QLowEnergyServiceData BluetoothServer::deviceInformationServiceData()
     modelNumberCharData.setProperties(QLowEnergyCharacteristic::Read);
     serviceData.addCharacteristic(modelNumberCharData);
 
-    // Firmware revision string 0x2a26
-    QLowEnergyCharacteristicData firmwareRevisionCharData;
-    firmwareRevisionCharData.setUuid(QBluetoothUuid::FirmwareRevisionString);
-    firmwareRevisionCharData.setValue(QString("1.0.0").toUtf8());
-    firmwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
-    serviceData.addCharacteristic(firmwareRevisionCharData);
+//    // Firmware revision string 0x2a26
+//    QLowEnergyCharacteristicData firmwareRevisionCharData;
+//    firmwareRevisionCharData.setUuid(QBluetoothUuid::FirmwareRevisionString);
+//    firmwareRevisionCharData.setValue(QString("1.0.0").toUtf8());
+//    firmwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
+//    serviceData.addCharacteristic(firmwareRevisionCharData);
 
-    // Hardware revision string 0x2a27
-    QLowEnergyCharacteristicData hardwareRevisionCharData;
-    hardwareRevisionCharData.setUuid(QBluetoothUuid::HardwareRevisionString);
-    hardwareRevisionCharData.setValue(QString("1.0.0").toUtf8());
-    hardwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
-    serviceData.addCharacteristic(hardwareRevisionCharData);
+//    // Hardware revision string 0x2a27
+//    QLowEnergyCharacteristicData hardwareRevisionCharData;
+//    hardwareRevisionCharData.setUuid(QBluetoothUuid::HardwareRevisionString);
+//    hardwareRevisionCharData.setValue(QString("1.0.0").toUtf8());
+//    hardwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
+//    serviceData.addCharacteristic(hardwareRevisionCharData);
 
     // Software revision string 0x2a28
     QLowEnergyCharacteristicData softwareRevisionCharData;
@@ -112,7 +112,7 @@ QLowEnergyServiceData BluetoothServer::genericAccessServiceData()
     // Device name 0x2a00
     QLowEnergyCharacteristicData nameCharData;
     nameCharData.setUuid(QBluetoothUuid::DeviceName);
-    nameCharData.setValue(QString("nymea-networkmanager").toUtf8());
+    nameCharData.setValue(QCoreApplication::applicationName().toUtf8());
     nameCharData.setProperties(QLowEnergyCharacteristic::Read);
     serviceData.addCharacteristic(nameCharData);
 
@@ -367,6 +367,7 @@ void BluetoothServer::start(WirelessNetworkDevice *wirelessDevice)
     advertisingData.setDiscoverability(QLowEnergyAdvertisingData::DiscoverabilityGeneral);
     advertisingData.setIncludePowerLevel(true);
     advertisingData.setLocalName("nymea");
+
     // TODO: set guh manufacturer SIG data
 
     // Note: start advertising in 100 ms interval, this makes the device better discoverable on certain phones

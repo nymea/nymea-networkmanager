@@ -55,6 +55,32 @@ NymeadService *Core::nymeaService() const
     return m_nymeaService;
 }
 
+QString Core::advertiseName() const
+{
+    return m_advertiseName;
+}
+
+void Core::setAdvertiseName(const QString &name)
+{
+    m_advertiseName = name;
+}
+
+QString Core::platformName() const
+{
+    return m_platformName;
+}
+
+void Core::setPlatformName(const QString &name)
+{
+    m_platformName = name;
+}
+
+void Core::run()
+{
+    // Start the networkmanager service
+    m_networkManager->start();
+}
+
 Core::Core(QObject *parent) :
     QObject(parent)
 {
@@ -68,10 +94,7 @@ Core::Core(QObject *parent) :
 
     m_nymeaService = new NymeadService(false, this);
 
-    // Start the networkmanager service
-    if (!m_networkManager->start()) {
-        qCWarning(dcApplication()) << "Could not start network manager. The service is not available. Make sure the network-manager is installed and running.";
-    }
+
 }
 
 Core::~Core()
@@ -117,6 +140,9 @@ void Core::startService()
         qCWarning(dcApplication()) << "Could not start services. There is no wireless device available.";
         return;
     }
+
+    if (m_bluetoothServer->running())
+        return;
 
     // Disable bluetooth on nymea in order to not crash with client connections
     m_nymeaService->enableBluetooth(false);

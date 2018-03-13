@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     Application application(argc, argv);
     application.setApplicationName("nymea-networkmanager");
     application.setOrganizationName("nymea");
-    application.setApplicationVersion("0.0.1");
+    application.setApplicationVersion("0.0.2");
 
     // Command line parser
     QCommandLineParser parser;
@@ -90,6 +90,15 @@ int main(int argc, char *argv[])
 
     QCommandLineOption debugOption(QStringList() << "d" << "debug", "Enable more debug output.");
     parser.addOption(debugOption);
+
+    QCommandLineOption advertiseNameOption(QStringList() << "a" << "advertise-name", "The name of the bluetooth server. Default \"nymea\".", "NAME");
+    advertiseNameOption.setDefaultValue("nymea");
+    parser.addOption(advertiseNameOption);
+
+    QCommandLineOption platformNameOption(QStringList() << "p" << "platform-name", "The name of the platform this daemon is running. Default \"nymea-box\".", "NAME");
+    platformNameOption.setDefaultValue("nymea-box");
+    parser.addOption(platformNameOption);
+
     parser.process(application);
 
     // Enable debug categories
@@ -103,9 +112,13 @@ int main(int argc, char *argv[])
     qCDebug(dcApplication()) << "=====================================";
     qCDebug(dcApplication()) << "Starting nymea-networkmanager" << application.applicationVersion();
     qCDebug(dcApplication()) << "=====================================";
+    qCDebug(dcApplication()) << "Advertising name:" << parser.value(advertiseNameOption);
+    qCDebug(dcApplication()) << "Platform name:" << parser.value(platformNameOption);
 
     // Start core
-    Core::instance();
+    Core::instance()->setAdvertiseName(parser.value(advertiseNameOption));
+    Core::instance()->setPlatformName(parser.value(platformNameOption));
+    Core::instance()->run();
 
     return application.exec();
 }

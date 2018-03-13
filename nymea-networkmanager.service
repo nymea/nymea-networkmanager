@@ -4,7 +4,7 @@ Documentation=https://github.com/guh/nymea-networkmanager
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/nymea-networkmanager -d
+ExecStart=/usr/bin/nymea-networkmanager -a nymea -p nymea-box
 StandardOutput=journal
 StandardError=journal
 Restart=on-failure

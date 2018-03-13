@@ -39,6 +39,14 @@ public:
     BluetoothServer *bluetoothServer() const;
     NymeadService *nymeaService() const;
 
+    QString advertiseName() const;
+    void setAdvertiseName(const QString &name);
+
+    QString platformName() const;
+    void setPlatformName(const QString &name);
+
+    void run();
+
 private:
     explicit Core(QObject *parent = nullptr);
     ~Core();
@@ -48,6 +56,9 @@ private:
     NetworkManager *m_networkManager = nullptr;
     BluetoothServer *m_bluetoothServer = nullptr;
     NymeadService *m_nymeaService = nullptr;
+
+    QString m_advertiseName;
+    QString m_platformName;
 
     void evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state);
 
