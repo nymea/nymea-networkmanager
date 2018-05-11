@@ -82,6 +82,8 @@ private:
     void setRunning(bool running);
     void setConnected(bool connected);
 
+    void startAdvertising();
+
 signals:
     void runningChanged(bool running);
     void connectedChanged(bool connected);
@@ -108,6 +110,7 @@ private slots:
 
 public slots:
     void start(WirelessNetworkDevice *wirelessDevice);
+    void restartServer();
     void stop();
 
     // Network manager

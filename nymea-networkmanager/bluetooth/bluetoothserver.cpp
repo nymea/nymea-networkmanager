@@ -187,6 +187,23 @@ void BluetoothServer::setConnected(bool connected)
     emit connectedChanged(m_connected);
 }
 
+void BluetoothServer::startAdvertising()
+{
+    QLowEnergyAdvertisingData advertisingData;
+    advertisingData.setDiscoverability(QLowEnergyAdvertisingData::DiscoverabilityGeneral);
+    advertisingData.setIncludePowerLevel(true);
+    advertisingData.setLocalName(m_advertiseName);
+
+    // TODO: set guh manufacturer SIG data
+
+    // Note: start advertising in 100 ms interval, this makes the device better discoverable on certain phones
+    QLowEnergyAdvertisingParameters advertisingParameters;
+    advertisingParameters.setInterval(100,100);
+
+    qCDebug(dcBluetoothServer()) << "Start advertising" << advertisingData.localName() << m_localDevice->address().toString();
+    m_controller->startAdvertising(advertisingParameters, advertisingData, advertisingData);
+}
+
 void BluetoothServer::onHostModeStateChanged(const QBluetoothLocalDevice::HostMode mode)
 {
     switch (mode) {
@@ -376,19 +393,26 @@ void BluetoothServer::start(WirelessNetworkDevice *wirelessDevice)
     m_networkService = new NetworkService(m_controller->addService(NetworkService::serviceData(), m_controller), m_controller);
     m_wirelessService = new WirelessService(m_controller->addService(WirelessService::serviceData(), m_controller), wirelessDevice, m_controller);
 
-    QLowEnergyAdvertisingData advertisingData;
-    advertisingData.setDiscoverability(QLowEnergyAdvertisingData::DiscoverabilityGeneral);
-    advertisingData.setIncludePowerLevel(true);
-    advertisingData.setLocalName(m_advertiseName);
+    startAdvertising();
+}
 
-    // TODO: set guh manufacturer SIG data
+void BluetoothServer::restartServer()
+{
+    qCDebug(dcBluetoothServer()) << "-------------------------------------";
+    qCDebug(dcBluetoothServer()) << "Restart bluetooth server";
+    qCDebug(dcBluetoothServer()) << "-------------------------------------";
 
-    // Note: start advertising in 100 ms interval, this makes the device better discoverable on certain phones
-    QLowEnergyAdvertisingParameters advertisingParameters;
-    advertisingParameters.setInterval(100,100);
+    if (!m_controller || !m_localDevice) {
+        qCWarning(dcBluetoothServer()) << "Could not restart server. There is no controller object or local device object.";
+        return;
+    }
 
-    qCDebug(dcBluetoothServer()) << "Start advertising" << advertisingData.localName() << m_localDevice->address().toString();
-    m_controller->startAdvertising(advertisingParameters, advertisingData, advertisingData);
+    if (m_controller->state() == QLowEnergyController::AdvertisingState) {
+        qCDebug(dcBluetoothServer()) << "Stop advertising;";
+        m_controller->stopAdvertising();
+    }
+
+    startAdvertising();
 }
 
 void BluetoothServer::stop()

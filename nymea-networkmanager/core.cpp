@@ -213,8 +213,7 @@ void Core::onBluetoothServerConnectedChanged(bool connected)
     qCDebug(dcApplication()) << "Bluetooth client" << (connected ? "connected" : "disconnected");
     if (!connected) {
         // Restart bluetooth server if a client disconnected
-        m_bluetoothServer->stop();
-        m_bluetoothServer->start(m_networkManager->wirelessNetworkDevices().first());
+        m_bluetoothServer->restartServer();
     }
 }
 
