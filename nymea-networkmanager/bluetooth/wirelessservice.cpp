@@ -45,7 +45,6 @@ WirelessService::WirelessService(QLowEnergyService *service, WirelessNetworkDevi
     connect(m_service, SIGNAL(descriptorWritten(QLowEnergyDescriptor, QByteArray)), this, SLOT(descriptorWritten(QLowEnergyDescriptor, QByteArray)));
     connect(m_service, SIGNAL(error(QLowEnergyService::ServiceError)), this, SLOT(serviceError(QLowEnergyService::ServiceError)));
 
-
     qCDebug(dcBluetoothServer()) << "WirelessService: Using" << m_device;
     connect(m_device, &WirelessNetworkDevice::bitRateChanged, this, &WirelessService::onWirelessDeviceBitRateChanged);
     connect(m_device, &WirelessNetworkDevice::stateChanged, this, &WirelessService::onWirelessDeviceStateChanged);

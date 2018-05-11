@@ -40,6 +40,16 @@ NetworkService::NetworkService(QLowEnergyService *service, QObject *parent) :
     connect(m_service, SIGNAL(characteristicWritten(QLowEnergyCharacteristic, QByteArray)), this, SLOT(characteristicWritten(QLowEnergyCharacteristic, QByteArray)));
     connect(m_service, SIGNAL(descriptorWritten(QLowEnergyDescriptor, QByteArray)), this, SLOT(descriptorWritten(QLowEnergyDescriptor, QByteArray)));
     connect(m_service, SIGNAL(error(QLowEnergyService::ServiceError)), this, SLOT(serviceError(QLowEnergyService::ServiceError)));
+
+    connect(Core::instance()->networkManager(), &NetworkManager::stateChanged, this, &NetworkService::setNetworkManagerState);
+    connect(Core::instance()->networkManager(), &NetworkManager::availableChanged, this, &NetworkService::setNetworkManagerAvailable);
+    connect(Core::instance()->networkManager(), &NetworkManager::networkingEnabledChanged, this, &NetworkService::setNetworkingEnabled);
+    connect(Core::instance()->networkManager(), &NetworkManager::wirelessEnabledChanged, this, &NetworkService::setWirelessNetworkingEnabled);
+
+    setNetworkManagerState(Core::instance()->networkManager()->state());
+    setNetworkManagerAvailable(Core::instance()->networkManager()->available());
+    setNetworkingEnabled(Core::instance()->networkManager()->networkingEnabled());
+    setWirelessNetworkingEnabled(Core::instance()->networkManager()->wirelessEnabled());
 }
 
 QLowEnergyService *NetworkService::service()

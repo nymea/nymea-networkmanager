@@ -390,7 +390,7 @@ void BluetoothServer::start(WirelessNetworkDevice *wirelessDevice)
     m_genericAttributeService = m_controller->addService(genericAttributeServiceData(), m_controller);
 
     // Create services
-    m_networkService = new NetworkService(m_controller->addService(NetworkService::serviceData(), m_controller), m_controller);
+    m_networkService = new NetworkService(m_controller->addService(NetworkService::serviceData(), m_controller), m_controller);    
     m_wirelessService = new WirelessService(m_controller->addService(WirelessService::serviceData(), m_controller), wirelessDevice, m_controller);
 
     startAdvertising();

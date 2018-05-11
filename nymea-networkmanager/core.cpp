@@ -240,7 +240,7 @@ void Core::onNetworkManagerNetworkingEnabledChanged(bool enabled)
 
 void Core::onNetworkManagerWirelessEnabledChanged(bool enabled)
 {
-    qCDebug(dcApplication()) << "Networkmanager  wireless networking is now" << (enabled ? "enabled" : "disabled");
+    qCDebug(dcApplication()) << "Networkmanager wireless networking is now" << (enabled ? "enabled" : "disabled");
     m_bluetoothServer->onWirelessNetworkingEnabledChanged(enabled);
     evaluateNetworkManagerState(m_networkManager->state());
 }
