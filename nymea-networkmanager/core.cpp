@@ -75,6 +75,16 @@ void Core::setPlatformName(const QString &name)
     m_platformName = name;
 }
 
+bool Core::testingEnabled() const
+{
+    return m_testing;
+}
+
+void Core::setTestingEnabled(bool testing)
+{
+    m_testing = testing;
+}
+
 void Core::run()
 {
     // Start the networkmanager service
@@ -97,6 +107,7 @@ Core::Core(QObject *parent) :
     connect(m_bluetoothServer, &BluetoothServer::connectedChanged, this, &Core::onBluetoothServerConnectedChanged);
 
     m_nymeaService = new NymeadService(false, this);
+    connect(m_nymeaService, &NymeadService::availableChanged, this, &Core::onNymeaServiceAvailableChanged);
 }
 
 Core::~Core()
@@ -116,6 +127,12 @@ Core::~Core()
 
 void Core::evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state)
 {
+    if (m_testing && m_networkManager->available()) {
+        startService();
+        return;
+    }
+
+
     switch (state) {
     case NetworkManager::NetworkManagerStateConnectedGlobal:
         // We are online
@@ -143,8 +160,6 @@ void Core::evaluateNetworkManagerState(const NetworkManager::NetworkManagerState
 
 void Core::startService()
 {
-    qCDebug(dcApplication()) << "Start service";
-
     if (!m_networkManager->available()) {
         qCWarning(dcApplication()) << "Could not start services. There is no network manager available.";
         return;
@@ -159,6 +174,8 @@ void Core::startService()
     if (m_bluetoothServer->running())
         return;
 
+    qCDebug(dcApplication()) << "Start service";
+
     // Disable bluetooth on nymea in order to not crash with client connections
     m_nymeaService->enableBluetooth(false);
 
@@ -171,6 +188,10 @@ void Core::startService()
 
 void Core::stopService()
 {
+    if (m_testing) {
+        return;
+    }
+
     if (m_bluetoothServer->running())
         qCDebug(dcApplication()) << "Stop bluetooth service";
 
@@ -208,4 +229,12 @@ void Core::onNetworkManagerStateChanged(const NetworkManager::NetworkManagerStat
 {
     qCDebug(dcApplication()) << state;
     evaluateNetworkManagerState(state);
+}
+
+void Core::onNymeaServiceAvailableChanged(bool available)
+{
+    if (available && m_bluetoothServer->running()) {
+        // Check if the bluetooth server is running, disable nymea bt functionality in that case
+        m_nymeaService->enableBluetooth(false);
+    }
 }

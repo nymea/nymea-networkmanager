@@ -45,6 +45,9 @@ public:
     QString platformName() const;
     void setPlatformName(const QString &name);
 
+    bool testingEnabled() const;
+    void setTestingEnabled(bool testing);
+
     void run();
 
 private:
@@ -59,6 +62,7 @@ private:
 
     QString m_advertiseName;
     QString m_platformName;
+    bool m_testing = false;
 
     void evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state);
 
@@ -71,6 +75,8 @@ private slots:
 
     void onNetworkManagerAvailableChanged(const bool &available);
     void onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state);
+
+    void onNymeaServiceAvailableChanged(bool available);
 
 };
 

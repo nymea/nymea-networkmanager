@@ -122,6 +122,7 @@ int main(int argc, char *argv[])
     // Start core
     Core::instance()->setAdvertiseName(parser.value(advertiseNameOption));
     Core::instance()->setPlatformName(parser.value(platformNameOption));
+    Core::instance()->setTestingEnabled(parser.isSet(testingOption));
     Core::instance()->run();
 
     return application.exec();
