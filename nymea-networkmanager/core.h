@@ -74,6 +74,8 @@ private slots:
     void onBluetoothServerConnectedChanged(bool connected);
 
     void onNetworkManagerAvailableChanged(const bool &available);
+    void onNetworkManagerNetworkingEnabledChanged(bool enabled);
+    void onNetworkManagerWirelessEnabledChanged(bool enabled);
     void onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state);
 
     void onNymeaServiceAvailableChanged(bool available);

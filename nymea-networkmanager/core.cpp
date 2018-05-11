@@ -101,6 +101,8 @@ Core::Core(QObject *parent) :
     m_networkManager = new NetworkManager(this);
     connect(m_networkManager, &NetworkManager::availableChanged, this, &Core::onNetworkManagerAvailableChanged);
     connect(m_networkManager, &NetworkManager::stateChanged, this, &Core::onNetworkManagerStateChanged);
+    connect(m_networkManager, &NetworkManager::networkingEnabledChanged, this, &Core::onNetworkManagerNetworkingEnabledChanged);
+    connect(m_networkManager, &NetworkManager::wirelessEnabledChanged, this, &Core::onNetworkManagerWirelessEnabledChanged);
 
     m_bluetoothServer = new BluetoothServer(this);
     connect(m_bluetoothServer, &BluetoothServer::runningChanged, this, &Core::onBluetoothServerRunningChanged);
@@ -126,12 +128,11 @@ Core::~Core()
 }
 
 void Core::evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state)
-{
+{    
     if (m_testing && m_networkManager->available()) {
         startService();
         return;
     }
-
 
     switch (state) {
     case NetworkManager::NetworkManagerStateConnectedGlobal:
@@ -226,6 +227,21 @@ void Core::onNetworkManagerAvailableChanged(const bool &available)
     }
 
     qCDebug(dcApplication()) << "Networkmanager is now available.";
+    m_bluetoothServer->onNetworkManagerAvailableChanged(available);
+    evaluateNetworkManagerState(m_networkManager->state());
+}
+
+void Core::onNetworkManagerNetworkingEnabledChanged(bool enabled)
+{
+    qCDebug(dcApplication()) << "Networkmanager networking is now" << (enabled ? "enabled" : "disabled");
+    m_bluetoothServer->onNetworkingEnabledChanged(enabled);
+    evaluateNetworkManagerState(m_networkManager->state());
+}
+
+void Core::onNetworkManagerWirelessEnabledChanged(bool enabled)
+{
+    qCDebug(dcApplication()) << "Networkmanager  wireless networking is now" << (enabled ? "enabled" : "disabled");
+    m_bluetoothServer->onWirelessNetworkingEnabledChanged(enabled);
     evaluateNetworkManagerState(m_networkManager->state());
 }
 
