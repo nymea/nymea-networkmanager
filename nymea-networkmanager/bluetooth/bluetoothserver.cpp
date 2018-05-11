@@ -395,11 +395,7 @@ void BluetoothServer::stop()
 {
     if (connected() && m_controller) {
         m_controller->disconnectFromDevice();
-        return;
     }
-
-    if (!running())
-        return;
 
     qCDebug(dcBluetoothServer()) << "-------------------------------------";
     qCDebug(dcBluetoothServer()) << "Stopping bluetooth server.";

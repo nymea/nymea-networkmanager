@@ -78,7 +78,11 @@ void Core::setPlatformName(const QString &name)
 void Core::run()
 {
     // Start the networkmanager service
-    m_networkManager->start();
+    if (!m_networkManager->available()) {
+        m_networkManager->start();
+    } else {
+        evaluateNetworkManagerState(m_networkManager->state());
+    }
 }
 
 Core::Core(QObject *parent) :
@@ -93,8 +97,6 @@ Core::Core(QObject *parent) :
     connect(m_bluetoothServer, &BluetoothServer::connectedChanged, this, &Core::onBluetoothServerConnectedChanged);
 
     m_nymeaService = new NymeadService(false, this);
-
-
 }
 
 Core::~Core()
@@ -120,20 +122,33 @@ void Core::evaluateNetworkManagerState(const NetworkManager::NetworkManagerState
         stopService();
         break;
     case NetworkManager::NetworkManagerStateConnectedSite:
-        // We somehow in the network
+        // We are somehow in the network
         stopService();
         break;
-    default:
+
+    case NetworkManager::NetworkManagerStateUnknown:
+    case NetworkManager::NetworkManagerStateAsleep:
+    case NetworkManager::NetworkManagerStateDisconnected:
+    case NetworkManager::NetworkManagerStateConnectedLocal:
         // Everything else is not connected, start the service
-        startService();
+        if (m_networkManager->available())
+            startService();
+
+        break;
+    default:
+        qCDebug(dcApplication()) << "Ignoring networkmanager state" << state;
         break;
     }
 }
 
 void Core::startService()
 {
-    if (!m_networkManager->available())
+    qCDebug(dcApplication()) << "Start service";
+
+    if (!m_networkManager->available()) {
+        qCWarning(dcApplication()) << "Could not start services. There is no network manager available.";
         return;
+    }
 
     // Verify if we have a wireless network available
     if (!m_networkManager->wirelessAvailable()) {

@@ -99,6 +99,9 @@ int main(int argc, char *argv[])
     platformNameOption.setDefaultValue("nymea-box");
     parser.addOption(platformNameOption);
 
+    QCommandLineOption testingOption(QStringList() << "t" << "testing", "Advertise the bluetoothserver alyways for testing.");
+    parser.addOption(testingOption);
+
     parser.process(application);
 
     // Enable debug categories
@@ -114,6 +117,7 @@ int main(int argc, char *argv[])
     qCDebug(dcApplication()) << "=====================================";
     qCDebug(dcApplication()) << "Advertising name:" << parser.value(advertiseNameOption);
     qCDebug(dcApplication()) << "Platform name:" << parser.value(platformNameOption);
+    qCDebug(dcApplication()) << "Testing mode:" << (parser.isSet(testingOption) ? "enabled" : "disabled");
 
     // Start core
     Core::instance()->setAdvertiseName(parser.value(advertiseNameOption));
