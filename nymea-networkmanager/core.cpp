@@ -248,6 +248,7 @@ void Core::onNetworkManagerWirelessEnabledChanged(bool enabled)
 void Core::onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state)
 {
     qCDebug(dcApplication()) << state;
+    m_bluetoothServer->onNetworkManagerStateChanged(state);
     evaluateNetworkManagerState(state);
 }
 
