@@ -30,10 +30,9 @@
 #include <QLowEnergyDescriptorData>
 #include <QLowEnergyCharacteristicData>
 
-WirelessService::WirelessService(QLowEnergyService *service, WirelessNetworkDevice *wirelessDevice, QObject *parent) :
+WirelessService::WirelessService(QLowEnergyService *service, QObject *parent) :
     QObject(parent),
     m_service(service),
-    m_device(wirelessDevice),
     m_readingInputData(false)
 {    
     qCDebug(dcBluetoothServer()) << "Create WirelessService.";
@@ -44,10 +43,6 @@ WirelessService::WirelessService(QLowEnergyService *service, WirelessNetworkDevi
     connect(m_service, SIGNAL(characteristicWritten(QLowEnergyCharacteristic, QByteArray)), this, SLOT(characteristicWritten(QLowEnergyCharacteristic, QByteArray)));
     connect(m_service, SIGNAL(descriptorWritten(QLowEnergyDescriptor, QByteArray)), this, SLOT(descriptorWritten(QLowEnergyDescriptor, QByteArray)));
     connect(m_service, SIGNAL(error(QLowEnergyService::ServiceError)), this, SLOT(serviceError(QLowEnergyService::ServiceError)));
-
-    qCDebug(dcBluetoothServer()) << "WirelessService: Using" << m_device;
-    connect(m_device, &WirelessNetworkDevice::bitRateChanged, this, &WirelessService::onWirelessDeviceBitRateChanged);
-    connect(m_device, &WirelessNetworkDevice::stateChanged, this, &WirelessService::onWirelessDeviceStateChanged);
 }
 
 QLowEnergyService *WirelessService::service()
@@ -99,7 +94,7 @@ WirelessService::WirelessServiceResponse WirelessService::checkWirelessErrors()
         return WirelessServiceResponseNetworkManagerNotAvailable;
     }
 
-    if (!m_device) {
+    if (!Core::instance()->networkManager()->wirelessAvailable()) {
         qCWarning(dcBluetoothServer()) << "WirelessService: There is no wireless device available.";
         return WirelessServiceResponseWirelessNotAvailable;
     }
@@ -203,7 +198,7 @@ void WirelessService::commandGetNetworks(const QVariantMap &request)
     }
 
     QVariantList accessPointVariantList;
-    foreach (WirelessAccessPoint *accessPoint, m_device->accessPoints()) {
+    foreach (WirelessAccessPoint *accessPoint, Core::instance()->networkManager()->wirelessNetworkDevices().first()->accessPoints()) {
         QVariantMap accessPointVariantMap;
         accessPointVariantMap.insert("e", accessPoint->ssid());
         accessPointVariantMap.insert("m", accessPoint->macAddress());
@@ -244,7 +239,7 @@ void WirelessService::commandConnect(const QVariantMap &request)
         return;
     }
 
-    Core::instance()->networkManager()->connectWifi(m_device->interface(), parameters.value("e").toString(), parameters.value("p").toString());
+    Core::instance()->networkManager()->connectWifi(Core::instance()->networkManager()->wirelessNetworkDevices().first()->interface(), parameters.value("e").toString(), parameters.value("p").toString());
     streamData(createResponse(WirelessServiceCommandConnect));
 }
 
@@ -260,7 +255,7 @@ void WirelessService::commandDisconnect(const QVariantMap &request)
     Q_UNUSED(request)
 
     if (!m_service) {
-        qCWarning(dcBluetoothServer()) << "WirelessService: Could not stream wireless network list. Service not valid";
+        qCWarning(dcBluetoothServer()) << "WirelessService: Service not valid";
         return;
     }
 
@@ -270,7 +265,7 @@ void WirelessService::commandDisconnect(const QVariantMap &request)
         return;
     }
 
-    m_device->disconnectDevice();
+    Core::instance()->networkManager()->wirelessNetworkDevices().first()->disconnectDevice();
     streamData(createResponse(WirelessServiceCommandDisconnect));
 }
 
@@ -278,8 +273,10 @@ void WirelessService::commandScan(const QVariantMap &request)
 {
     Q_UNUSED(request)
 
+    qCDebug(dcBluetoothServer()) << "WirelessService: Execute command scan.";
+
     if (!m_service) {
-        qCWarning(dcBluetoothServer()) << "WirelessService: Could not stream wireless network list. Service not valid";
+        qCWarning(dcBluetoothServer()) << "WirelessService: Could scan wireless networks. Service not valid";
         return;
     }
 
@@ -289,16 +286,17 @@ void WirelessService::commandScan(const QVariantMap &request)
         return;
     }
 
-    m_device->scanWirelessNetworks();
+    Core::instance()->networkManager()->wirelessNetworkDevices().first()->scanWirelessNetworks();
     streamData(createResponse(WirelessServiceCommandScan));
 }
 
 void WirelessService::commandGetCurrentConnection(const QVariantMap &request)
 {
     Q_UNUSED(request)
+    qCDebug(dcBluetoothServer()) << "WirelessService: Execute get current connection.";
 
     if (!m_service) {
-        qCWarning(dcBluetoothServer()) << "WirelessService: Could not stream wireless network list. Service not valid";
+        qCWarning(dcBluetoothServer()) << "WirelessService: Service not valid";
         return;
     }
 
@@ -308,10 +306,12 @@ void WirelessService::commandGetCurrentConnection(const QVariantMap &request)
         return;
     }
 
+    WirelessNetworkDevice *device = Core::instance()->networkManager()->wirelessNetworkDevices().first();
+
     QVariantMap connectionDataMap;
-    QNetworkInterface wifiInterface = QNetworkInterface::interfaceFromName(m_device->interface());
-    if (!m_device->activeAccessPoint() || !wifiInterface.isValid() || wifiInterface.addressEntries().isEmpty()) {
-        qCDebug(dcBluetoothServer()) << "There is currently no access active accesspoint";
+    QNetworkInterface wifiInterface = QNetworkInterface::interfaceFromName(device->interface());
+    if (!device->activeAccessPoint() || !wifiInterface.isValid() || wifiInterface.addressEntries().isEmpty()) {
+        qCDebug(dcBluetoothServer()) << "WirelessService: There is currently no access active accesspoint";
         connectionDataMap.insert("e", "");
         connectionDataMap.insert("m", "");
         connectionDataMap.insert("s", 0);
@@ -319,11 +319,11 @@ void WirelessService::commandGetCurrentConnection(const QVariantMap &request)
         connectionDataMap.insert("i", "");
     } else {
         QHostAddress address = wifiInterface.addressEntries().first().ip();
-        qCDebug(dcBluetoothServer()) << "Current connection:" << m_device->activeAccessPoint() << address.toString();
-        connectionDataMap.insert("e", m_device->activeAccessPoint()->ssid());
-        connectionDataMap.insert("m", m_device->activeAccessPoint()->macAddress());
-        connectionDataMap.insert("s", m_device->activeAccessPoint()->signalStrength());
-        connectionDataMap.insert("p", (int)m_device->activeAccessPoint()->isProtected());
+        qCDebug(dcBluetoothServer()) << "WirelessService: Current connection:" << device->activeAccessPoint() << address.toString();
+        connectionDataMap.insert("e", device->activeAccessPoint()->ssid());
+        connectionDataMap.insert("m", device->activeAccessPoint()->macAddress());
+        connectionDataMap.insert("s", device->activeAccessPoint()->signalStrength());
+        connectionDataMap.insert("p", (int)device->activeAccessPoint()->isProtected());
         connectionDataMap.insert("i", address.toString());
     }
 
@@ -483,8 +483,6 @@ void WirelessService::onWirelessDeviceBitRateChanged(const int &bitRate)
 
 void WirelessService::onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState &state)
 {
-    qCDebug(dcBluetoothServer()) << "WirelessService: Wireless network device state changed" << state;
-
     if (!m_service) {
         qCWarning(dcBluetoothServer()) << "WirelessService: Could not update wireless network device state. Service not valid";
         return;
@@ -496,5 +494,6 @@ void WirelessService::onWirelessDeviceStateChanged(const NetworkDevice::NetworkD
         return;
     }
 
+    qCDebug(dcBluetoothServer()) << "WirelessService: Notify wireless state changed" << WirelessService::getWirelessNetworkDeviceState(state);
     m_service->writeCharacteristic(characteristic, WirelessService::getWirelessNetworkDeviceState(state));
 }

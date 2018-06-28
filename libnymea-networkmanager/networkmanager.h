@@ -118,11 +118,16 @@ private:
     QHash<QDBusObjectPath, WiredNetworkDevice *> m_wiredNetworkDevices;
 
     bool m_available = false;
+    bool m_enabled = false;
+
     QString m_version;
     NetworkManagerState m_state = NetworkManagerStateUnknown;
     NetworkManagerConnectivityState m_connectivityState = NetworkManagerConnectivityStateUnknown;
     bool m_networkingEnabled = false;
     bool m_wirelessEnabled = false;
+
+    bool init();
+    void deinit();
 
     void loadDevices();
 

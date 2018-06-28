@@ -80,13 +80,14 @@ int main(int argc, char *argv[])
     Application application(argc, argv);
     application.setApplicationName("nymea-networkmanager");
     application.setOrganizationName("nymea");
-    application.setApplicationVersion("0.0.3");
+    application.setApplicationVersion("0.1.0");
 
     // Command line parser
     QCommandLineParser parser;
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.setApplicationDescription(QString("\nThis daemon allows to configure a wifi network using a bluetooth low energy connection.\n\nCopyright %1 2018 Simon Stürz <simon.stuerz@guh.io>").arg(QChar(0xA9)));
+    parser.setApplicationDescription(QString("\nThis daemon allows to configure a wifi network using a bluetooth low energy connection." \
+                                             "\n\nCopyright %1 2018 Simon Stürz <simon.stuerz@guh.io>").arg(QChar(0xA9)));
 
     QCommandLineOption debugOption(QStringList() << "d" << "debug", "Enable more debug output.");
     parser.addOption(debugOption);
@@ -98,6 +99,16 @@ int main(int argc, char *argv[])
     QCommandLineOption platformNameOption(QStringList() << "p" << "platform-name", "The name of the platform this daemon is running. Default \"nymea-box\".", "NAME");
     platformNameOption.setDefaultValue("nymea-box");
     parser.addOption(platformNameOption);
+
+    QCommandLineOption timeoutOption(QStringList() << "t" << "timeout", "The timeout of the bluetooth server. Minimum value is 10. Default \"60\".", "SECONDS");
+    timeoutOption.setDefaultValue("60");
+    parser.addOption(timeoutOption);
+
+    QCommandLineOption modeOption(QStringList() << "m" << "mode", "Run the daemon in a specific mode. Default \"offline\".\n\n" \
+                                  "- offline: this mode starts the bluetooth server once the device is offline and not connected to any LAN network.\n\n" \
+                                  "- always: this mode enables the bluetooth server as long the application is running.\n\n" \
+                                  "- start: this mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.\n\n", "offline | always | start");
+    parser.addOption(modeOption);
 
     QCommandLineOption testingOption(QStringList() << "t" << "testing", "Advertise the bluetoothserver alyways for testing.");
     parser.addOption(testingOption);
@@ -112,17 +123,49 @@ int main(int argc, char *argv[])
 
     QLoggingCategory::installFilter(loggingCategoryFilter);
 
+    bool timeoutValueOk = false;
+    int timeout = parser.value(timeoutOption).toInt(&timeoutValueOk);
+
+    if (!timeoutValueOk) {
+        qCCritical(dcApplication()) << QString("Invalid timeout value passed: \"%1\". Please pass an integer >= 10").arg(parser.value(timeoutOption));
+        parser.showHelp(1);
+    }
+
+    if (timeout < 10) {
+        qCCritical(dcApplication()) << QString("Invalid timeout value passed: \"%1\". The minimal timeout is 10 [s].").arg(parser.value(timeoutOption));
+        parser.showHelp(1);
+    }
+
+    Core::Mode mode = Core::ModeOffline;
+
+    if (parser.isSet(modeOption)) {
+        if (parser.value(modeOption).toLower() == "offline") {
+            mode = Core::ModeOffline;
+        } else if (parser.value(modeOption).toLower() == "always") {
+            mode = Core::ModeAlways;
+        } else if (parser.value(modeOption).toLower() == "start") {
+            mode = Core::ModeStart;
+        } else {
+            qCWarning(dcApplication()).noquote() << QString("The given mode \"%1\" does not match the allowed modes.").arg(parser.value(modeOption));
+            parser.showHelp(1);
+        }
+    }
+
     qCDebug(dcApplication()) << "=====================================";
     qCDebug(dcApplication()) << "Starting nymea-networkmanager" << application.applicationVersion();
     qCDebug(dcApplication()) << "=====================================";
     qCDebug(dcApplication()) << "Advertising name:" << parser.value(advertiseNameOption);
     qCDebug(dcApplication()) << "Platform name:" << parser.value(platformNameOption);
-    qCDebug(dcApplication()) << "Testing mode:" << (parser.isSet(testingOption) ? "enabled" : "disabled");
+    qCDebug(dcApplication()) << "Mode:" << parser.value(modeOption);
+    qCDebug(dcApplication()) << "Timeout:" << parser.value(timeoutOption);
 
     // Start core
+    Core::instance()->setMode(mode);
+    Core::instance()->setAdvertisingTimeout(timeout);
     Core::instance()->setAdvertiseName(parser.value(advertiseNameOption));
     Core::instance()->setPlatformName(parser.value(platformNameOption));
     Core::instance()->setTestingEnabled(parser.isSet(testingOption));
+
     Core::instance()->run();
 
     return application.exec();

@@ -342,7 +342,7 @@ void BluetoothServer::serviceError(const QLowEnergyService::ServiceError &error)
     qCWarning(dcBluetoothServer()) << "Service error:" << errorString;
 }
 
-void BluetoothServer::start(WirelessNetworkDevice *wirelessDevice)
+void BluetoothServer::start()
 {
     // Check if a user is connected
     if (connected()) {
@@ -391,26 +391,7 @@ void BluetoothServer::start(WirelessNetworkDevice *wirelessDevice)
 
     // Create services
     m_networkService = new NetworkService(m_controller->addService(NetworkService::serviceData(), m_controller), m_controller);    
-    m_wirelessService = new WirelessService(m_controller->addService(WirelessService::serviceData(), m_controller), wirelessDevice, m_controller);
-
-    startAdvertising();
-}
-
-void BluetoothServer::restartServer()
-{
-    qCDebug(dcBluetoothServer()) << "-------------------------------------";
-    qCDebug(dcBluetoothServer()) << "Restart bluetooth server";
-    qCDebug(dcBluetoothServer()) << "-------------------------------------";
-
-    if (!m_controller || !m_localDevice) {
-        qCWarning(dcBluetoothServer()) << "Could not restart server. There is no controller object or local device object.";
-        return;
-    }
-
-    if (m_controller->state() == QLowEnergyController::AdvertisingState) {
-        qCDebug(dcBluetoothServer()) << "Stop advertising;";
-        m_controller->stopAdvertising();
-    }
+    m_wirelessService = new WirelessService(m_controller->addService(WirelessService::serviceData(), m_controller), m_controller);
 
     startAdvertising();
 }
@@ -421,9 +402,22 @@ void BluetoothServer::stop()
         m_controller->disconnectFromDevice();
     }
 
+    if (!m_running)
+        return;
+
     qCDebug(dcBluetoothServer()) << "-------------------------------------";
     qCDebug(dcBluetoothServer()) << "Stopping bluetooth server.";
     qCDebug(dcBluetoothServer()) << "-------------------------------------";
+
+    if (m_networkService) {
+        m_networkService->deleteLater();
+        m_networkService = nullptr;
+    }
+
+    if (m_wirelessService) {
+        m_wirelessService->deleteLater();
+        m_wirelessService = nullptr;
+    }
 
     if (m_controller) {
         qCDebug(dcBluetoothServer()) << "Stop advertising.";
@@ -435,9 +429,10 @@ void BluetoothServer::stop()
     if (m_localDevice) {
         qCDebug(dcBluetoothServer()) << "Set host mode to connectable.";
         m_localDevice->setHostMode(QBluetoothLocalDevice::HostConnectable);
-        delete m_localDevice;
+        m_localDevice->deleteLater();
         m_localDevice = nullptr;
     }
+
 
     setConnected(false);
     setRunning(false);
@@ -465,5 +460,17 @@ void BluetoothServer::onNetworkManagerStateChanged(const NetworkManager::Network
 {
     if (m_networkService)
         m_networkService->setNetworkManagerState(state);
+}
+
+void BluetoothServer::onWirelessDeviceBitRateChanged(int bitRate)
+{
+    if (m_wirelessService)
+        m_wirelessService->onWirelessDeviceBitRateChanged(bitRate);
+}
+
+void BluetoothServer::onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState state)
+{
+    if (m_wirelessService)
+        m_wirelessService->onWirelessDeviceStateChanged(state);
 }
 

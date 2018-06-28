@@ -32,6 +32,14 @@ class Core : public QObject
 {
     Q_OBJECT
 public:
+
+    enum Mode {
+        ModeAlways,
+        ModeOffline,
+        ModeStart
+    };
+    Q_ENUM(Mode)
+
     static Core* instance();
     void destroy();
 
@@ -39,11 +47,17 @@ public:
     BluetoothServer *bluetoothServer() const;
     NymeadService *nymeaService() const;
 
+    Mode mode() const;
+    void setMode(const Mode &mode);
+
     QString advertiseName() const;
     void setAdvertiseName(const QString &name);
 
     QString platformName() const;
     void setPlatformName(const QString &name);
+
+    int advertisingTimeout() const;
+    void setAdvertisingTimeout(const int advertisingTimeout);
 
     bool testingEnabled() const;
     void setTestingEnabled(bool testing);
@@ -59,9 +73,15 @@ private:
     NetworkManager *m_networkManager = nullptr;
     BluetoothServer *m_bluetoothServer = nullptr;
     NymeadService *m_nymeaService = nullptr;
+    WirelessNetworkDevice *m_wirelessDevice = nullptr;
 
+    QTimer *m_advertisingTimer = nullptr;
+
+    Mode m_mode = ModeOffline;
     QString m_advertiseName;
     QString m_platformName;
+    int m_advertisingTimeout = 60;
+
     bool m_testing = false;
 
     void evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state);
@@ -70,6 +90,8 @@ private:
     void stopService();
 
 private slots:
+    void onAdvertisingTimeout();
+
     void onBluetoothServerRunningChanged(bool running);
     void onBluetoothServerConnectedChanged(bool connected);
 
@@ -77,6 +99,14 @@ private slots:
     void onNetworkManagerNetworkingEnabledChanged(bool enabled);
     void onNetworkManagerWirelessEnabledChanged(bool enabled);
     void onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state);
+    void onNetworkManagerWirelessDeviceAdded(WirelessNetworkDevice *wirelessDevice);
+    void onNetworkManagerWirelessDeviceRemoved(const QString &interface);
+
+
+
+    // Wireless device
+    void onWirelessDeviceBitRateChanged(int bitRate);
+    void onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState state);
 
     void onNymeaServiceAvailableChanged(bool available);
 

@@ -61,7 +61,7 @@ public:
     };
     Q_ENUM(WirelessServiceResponse)
 
-    explicit WirelessService(QLowEnergyService *service, WirelessNetworkDevice *wirelessDevice, QObject *parent = 0);
+    explicit WirelessService(QLowEnergyService *service, QObject *parent = 0);
 
     QLowEnergyService *service();
 
@@ -69,7 +69,6 @@ public:
 
 private:
     QLowEnergyService *m_service = nullptr;
-    WirelessNetworkDevice *m_device = nullptr;
 
     bool m_readingInputData = false;
     QByteArray m_inputDataStream;
@@ -104,6 +103,7 @@ private slots:
     // Commands
     void processCommand(const QVariantMap &request);
 
+public slots:
     // Wireless network device
     void onWirelessDeviceBitRateChanged(const int &bitRate);
     void onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState &state);

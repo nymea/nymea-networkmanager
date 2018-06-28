@@ -109,8 +109,7 @@ private slots:
     void serviceError(const QLowEnergyService::ServiceError &error);
 
 public slots:
-    void start(WirelessNetworkDevice *wirelessDevice);
-    void restartServer();
+    void start();
     void stop();
 
     // Network manager
@@ -118,6 +117,10 @@ public slots:
     void onNetworkingEnabledChanged(bool enabled);
     void onWirelessNetworkingEnabledChanged(bool enabled);
     void onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state);
+
+    // Wireless device
+    void onWirelessDeviceBitRateChanged(int bitRate);
+    void onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState state);
 
 };
 
