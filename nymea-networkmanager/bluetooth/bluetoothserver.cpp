@@ -345,7 +345,7 @@ void BluetoothServer::serviceError(const QLowEnergyService::ServiceError &error)
 void BluetoothServer::start()
 {
     // Check if a user is connected
-    if (connected()) {
+    if (m_connected) {
         qCDebug(dcBluetoothServer()) << "User is connected. Doing nothing.";
         return;
     }
@@ -410,12 +410,12 @@ void BluetoothServer::stop()
     qCDebug(dcBluetoothServer()) << "-------------------------------------";
 
     if (m_networkService) {
-        m_networkService->deleteLater();
+        delete m_networkService;
         m_networkService = nullptr;
     }
 
     if (m_wirelessService) {
-        m_wirelessService->deleteLater();
+        delete m_wirelessService;
         m_wirelessService = nullptr;
     }
 
@@ -429,7 +429,7 @@ void BluetoothServer::stop()
     if (m_localDevice) {
         qCDebug(dcBluetoothServer()) << "Set host mode to connectable.";
         m_localDevice->setHostMode(QBluetoothLocalDevice::HostConnectable);
-        m_localDevice->deleteLater();
+        delete m_localDevice;
         m_localDevice = nullptr;
     }
 
@@ -453,7 +453,7 @@ void BluetoothServer::onNetworkingEnabledChanged(bool enabled)
 void BluetoothServer::onWirelessNetworkingEnabledChanged(bool enabled)
 {
     if (m_networkService)
-        m_networkService->setNetworkingEnabled(enabled);
+        m_networkService->setWirelessNetworkingEnabled(enabled);
 }
 
 void BluetoothServer::onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state)

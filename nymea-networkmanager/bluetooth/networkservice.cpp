@@ -52,6 +52,11 @@ NetworkService::NetworkService(QLowEnergyService *service, QObject *parent) :
     setWirelessNetworkingEnabled(Core::instance()->networkManager()->wirelessEnabled());
 }
 
+NetworkService::~NetworkService()
+{
+    qCDebug(dcBluetoothServer()) << "Delete network service";
+}
+
 QLowEnergyService *NetworkService::service()
 {
     return m_service;
@@ -165,6 +170,7 @@ QLowEnergyServiceData NetworkService::serviceData()
     networkingEnabledStatusData.setUuid(networkingEnabledCharacteristicUuid);
     networkingEnabledStatusData.setValue(QByteArray(1, 0));
     networkingEnabledStatusData.setProperties(QLowEnergyCharacteristic::Read | QLowEnergyCharacteristic::Notify);
+    networkingEnabledStatusData.addDescriptor(clientConfigDescriptorData);
     networkingEnabledStatusData.setValue(QByteArray::fromHex("00"));
     serviceData.addCharacteristic(networkingEnabledStatusData);
 
@@ -172,6 +178,7 @@ QLowEnergyServiceData NetworkService::serviceData()
     QLowEnergyCharacteristicData wirelessEnabledStatusData;
     wirelessEnabledStatusData.setUuid(wirelessEnabledCharacteristicUuid);
     wirelessEnabledStatusData.setValue(QByteArray(1, 0));
+    wirelessEnabledStatusData.addDescriptor(clientConfigDescriptorData);
     wirelessEnabledStatusData.setProperties(QLowEnergyCharacteristic::Read | QLowEnergyCharacteristic::Notify);
     wirelessEnabledStatusData.setValue(QByteArray::fromHex("00"));
     serviceData.addCharacteristic(wirelessEnabledStatusData);

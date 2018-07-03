@@ -54,6 +54,7 @@ public:
     Q_ENUM(NetworkServiceResponse)
 
     explicit NetworkService(QLowEnergyService *service, QObject *parent = 0);
+    ~NetworkService();
 
     QLowEnergyService *service();
 

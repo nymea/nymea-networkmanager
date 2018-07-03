@@ -193,7 +193,6 @@ void Core::evaluateNetworkManagerState(const NetworkManager::NetworkManagerState
             stopService();
         }
         break;
-
     case NetworkManager::NetworkManagerStateUnknown:
     case NetworkManager::NetworkManagerStateAsleep:
     case NetworkManager::NetworkManagerStateDisconnected:
@@ -230,7 +229,8 @@ void Core::startService()
     qCDebug(dcApplication()) << "Start bluetooth service";
     m_bluetoothServer->setAdvertiseName(m_advertiseName);
     m_bluetoothServer->setMachineId(m_platformName);
-    m_bluetoothServer->start();
+
+    QTimer::singleShot(5000, m_bluetoothServer, &BluetoothServer::start);
 }
 
 void Core::stopService()
@@ -285,6 +285,9 @@ void Core::onBluetoothServerConnectedChanged(bool connected)
         m_bluetoothServer->onNetworkManagerStateChanged(m_networkManager->state());
         m_bluetoothServer->onNetworkingEnabledChanged(m_networkManager->networkingEnabled());
         m_bluetoothServer->onWirelessNetworkingEnabledChanged(m_networkManager->wirelessEnabled());
+        if (m_wirelessDevice)
+            m_bluetoothServer->onWirelessDeviceStateChanged(m_wirelessDevice->deviceState());
+
     } else {
         m_advertisingTimer->stop();
         m_bluetoothServer->stop();

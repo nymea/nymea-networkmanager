@@ -45,6 +45,11 @@ WirelessService::WirelessService(QLowEnergyService *service, QObject *parent) :
     connect(m_service, SIGNAL(error(QLowEnergyService::ServiceError)), this, SLOT(serviceError(QLowEnergyService::ServiceError)));
 }
 
+WirelessService::~WirelessService()
+{
+    qCDebug(dcBluetoothServer()) << "Delete wireless service";
+}
+
 QLowEnergyService *WirelessService::service()
 {
     return m_service;
