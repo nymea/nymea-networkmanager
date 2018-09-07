@@ -109,34 +109,6 @@ void Core::setTestingEnabled(bool testing)
 
 void Core::run()
 {
-    // Start the networkmanager
-    if (!m_networkManager->start()) {
-        qCWarning(dcApplication()) << "Could not start network manager. Please make sure the networkmanager is available.";
-        return;
-    }
-
-    switch (m_mode) {
-    case ModeAlways:
-        qCDebug(dcApplication()) << "Start the bluetooth service because of \"always\" mode.";
-        startService();
-        break;
-    case ModeStart:
-        qCDebug(dcApplication()) << "Start the bluetooth service because of \"start\" mode.";
-        startService();
-        m_advertisingTimer->start(m_advertisingTimeout * 1000);
-        break;
-    case ModeOffline:
-        evaluateNetworkManagerState(m_networkManager->state());
-        break;
-    default:
-        break;
-    }
-
-}
-
-Core::Core(QObject *parent) :
-    QObject(parent)
-{
     m_networkManager = new NetworkManager(this);
     connect(m_networkManager, &NetworkManager::availableChanged, this, &Core::onNetworkManagerAvailableChanged);
     connect(m_networkManager, &NetworkManager::stateChanged, this, &Core::onNetworkManagerStateChanged);
@@ -156,6 +128,34 @@ Core::Core(QObject *parent) :
     m_advertisingTimer->setSingleShot(true);
 
     connect(m_advertisingTimer, &QTimer::timeout, this, &Core::onAdvertisingTimeout);
+
+    // Start the networkmanager
+    if (!m_networkManager->start()) {
+        qCWarning(dcApplication()) << "Could not start network manager. Please make sure the networkmanager is available.";
+        return;
+    }
+
+    switch (m_mode) {
+    case ModeAlways:
+        qCDebug(dcApplication()) << "Start the bluetooth service because of \"always\" mode.";
+        startService();
+        break;
+    case ModeStart:
+        qCDebug(dcApplication()) << "Start the bluetooth service because of \"start\" mode.";
+        startService();
+        m_advertisingTimer->start(m_advertisingTimeout * 1000);
+        break;
+    case ModeOffline:
+        evaluateNetworkManagerState(m_networkManager->state());
+        break;
+    }
+
+    m_ready = true;
+}
+
+Core::Core(QObject *parent) :
+    QObject(parent)
+{
 }
 
 Core::~Core()
@@ -183,14 +183,14 @@ void Core::evaluateNetworkManagerState(const NetworkManager::NetworkManagerState
         // We are online
         if (m_bluetoothServer->running() && !m_bluetoothServer->connected()) {
             qCDebug(dcApplication()) << "Stop the bluetooth service because of \"offline\" mode.";
-            stopService();
+            m_bluetoothServer->stop();
         }
         break;
     case NetworkManager::NetworkManagerStateConnectedSite:
         // We are somehow in the network
         if (m_bluetoothServer->running() && !m_bluetoothServer->connected()) {
             qCDebug(dcApplication()) << "Stop the bluetooth service because of \"offline\" mode.";
-            stopService();
+            m_bluetoothServer->stop();
         }
         break;
     case NetworkManager::NetworkManagerStateUnknown:
@@ -220,25 +220,17 @@ void Core::startService()
         return;
     }
 
-    qCDebug(dcApplication()) << "Start service";
-
     // Disable bluetooth on nymea in order to not crash with client connections
+    // TODO: This should be moved to a hooks system
     m_nymeaService->enableBluetooth(false);
 
     // Start the bluetooth server for this wireless device
-    qCDebug(dcApplication()) << "Start bluetooth service";
+    qCDebug(dcApplication()) << "Starting bluetooth service...";
     m_bluetoothServer->setAdvertiseName(m_advertiseName);
     m_bluetoothServer->setMachineId(m_platformName);
 
     QTimer::singleShot(5000, m_bluetoothServer, &BluetoothServer::start);
-}
-
-void Core::stopService()
-{
-    if (m_bluetoothServer->running())
-        qCDebug(dcApplication()) << "Stop bluetooth service";
-
-    m_bluetoothServer->stop();
+    qCDebug(dcApplication()) << "Starting in 5 secs...";
 }
 
 void Core::onAdvertisingTimeout()
@@ -247,7 +239,7 @@ void Core::onAdvertisingTimeout()
         return;
 
     qCDebug(dcApplication()) << "Advertising timeout. Shutting down the bluetooth server.";
-    stopService();
+    m_bluetoothServer->stop();
 }
 
 void Core::onBluetoothServerRunningChanged(bool running)
@@ -269,8 +261,6 @@ void Core::onBluetoothServerRunningChanged(bool running)
         case ModeOffline:
             evaluateNetworkManagerState(m_networkManager->state());
             break;
-        default:
-            break;
         }
     }
 }
@@ -289,13 +279,20 @@ void Core::onBluetoothServerConnectedChanged(bool connected)
             m_bluetoothServer->onWirelessDeviceStateChanged(m_wirelessDevice->deviceState());
 
     } else {
-        m_advertisingTimer->stop();
-        m_bluetoothServer->stop();
+        // If a client has been connected we need to kick the BT server again or it won't be advertising any more
+        if (m_mode == ModeAlways
+                || (m_mode == ModeStart && m_advertisingTimer->isActive())
+                || (m_mode == ModeOffline && m_networkManager->state() < NetworkManager::NetworkManagerStateConnectedLocal)) {
+            m_bluetoothServer->start();
+        }
     }
 }
 
 void Core::onNetworkManagerAvailableChanged(const bool &available)
 {
+    if (!m_ready) {
+        return;
+    }
     if (!available) {
         qCWarning(dcApplication()) << "Networkmanager is not available any more.";
         m_bluetoothServer->onNetworkManagerAvailableChanged(m_networkManager->available());
@@ -307,8 +304,10 @@ void Core::onNetworkManagerAvailableChanged(const bool &available)
 
     switch (m_mode) {
     case ModeAlways:
-        qCDebug(dcApplication()) << "Start the bluetooth service because of \"always\" mode.";
-        startService();
+        if (!m_bluetoothServer->running()) {
+            qCDebug(dcApplication()) << "Starting the bluetooth service because of \"always\" mode.";
+            startService();
+        }
         break;
     case ModeStart:
         break;

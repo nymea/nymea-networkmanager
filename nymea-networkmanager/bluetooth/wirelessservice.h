@@ -61,7 +61,7 @@ public:
     };
     Q_ENUM(WirelessServiceResponse)
 
-    explicit WirelessService(QLowEnergyService *service, QObject *parent = 0);
+    explicit WirelessService(QLowEnergyService *service, QObject *parent = nullptr);
     ~WirelessService();
 
     QLowEnergyService *service();

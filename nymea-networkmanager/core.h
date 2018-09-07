@@ -69,6 +69,7 @@ private:
     ~Core();
 
     static Core *s_instance;
+    bool m_ready = false;
 
     NetworkManager *m_networkManager = nullptr;
     BluetoothServer *m_bluetoothServer = nullptr;
@@ -87,7 +88,6 @@ private:
     void evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state);
 
     void startService();
-    void stopService();
 
 private slots:
     void onAdvertisingTimeout();

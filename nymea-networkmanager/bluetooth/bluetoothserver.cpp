@@ -189,6 +189,10 @@ void BluetoothServer::setConnected(bool connected)
 
 void BluetoothServer::startAdvertising()
 {
+    if (m_controller->state() == QLowEnergyController::AdvertisingState) {
+        qDebug() << "Controller already advertising...";
+        return;
+    }
     QLowEnergyAdvertisingData advertisingData;
     advertisingData.setDiscoverability(QLowEnergyAdvertisingData::DiscoverabilityGeneral);
     advertisingData.setIncludePowerLevel(true);
@@ -197,8 +201,11 @@ void BluetoothServer::startAdvertising()
     // TODO: set guh manufacturer SIG data
 
     // Note: start advertising in 100 ms interval, this makes the device better discoverable on certain phones
+
+    // Note micha: This caused it to completely break for me... I couldn't connect to it in 90% of the cases with those
+    // parameters set. Commenting out...
     QLowEnergyAdvertisingParameters advertisingParameters;
-    advertisingParameters.setInterval(100,100);
+//    advertisingParameters.setInterval(100,100);
 
     qCDebug(dcBluetoothServer()) << "Start advertising" << advertisingData.localName() << m_localDevice->address().toString();
     m_controller->startAdvertising(advertisingParameters, advertisingData, advertisingData);
@@ -208,18 +215,18 @@ void BluetoothServer::onHostModeStateChanged(const QBluetoothLocalDevice::HostMo
 {
     switch (mode) {
     case QBluetoothLocalDevice::HostConnectable:
-        qCDebug(dcBluetoothServer()) << "Bluetooth host in connectable mode.";
+        qCDebug(dcBluetoothServer()) << "Bluetooth host mode changed to: Connectable";
+        m_localDevice->setHostMode(QBluetoothLocalDevice::HostDiscoverable);
         break;
     case QBluetoothLocalDevice::HostDiscoverable:
-        qCDebug(dcBluetoothServer()) << "Bluetooth host in discoverable mode.";
+        qCDebug(dcBluetoothServer()) << "Bluetooth host mode changed to: Discoverable";
+        startAdvertising();
         break;
     case QBluetoothLocalDevice::HostPoweredOff:
-        qCDebug(dcBluetoothServer()) << "Bluetooth host in power off mode.";
+        qCDebug(dcBluetoothServer()) << "Bluetooth host mode changed to: Powered Off";
         break;
     case QBluetoothLocalDevice::HostDiscoverableLimitedInquiry:
-        qCDebug(dcBluetoothServer()) << "Bluetooth host in discoverable limited inquiry mode.";
-        break;
-    default:
+        qCDebug(dcBluetoothServer()) << "Bluetooth host mode changed to: Limited Inquiry Discoverable";
         break;
     }
 }
@@ -278,8 +285,6 @@ void BluetoothServer::onControllerStateChanged(const QLowEnergyController::Contr
     case QLowEnergyController::AdvertisingState:
         qCDebug(dcBluetoothServer()) << "Controller state advertising...";
         setRunning(true);
-        break;
-    default:
         break;
     }
 }
@@ -352,7 +357,11 @@ void BluetoothServer::start()
 
     if (running()) {
         qCDebug(dcBluetoothServer()) << "Already running.";
-        m_localDevice->setHostMode(QBluetoothLocalDevice::HostDiscoverable);
+        if (m_localDevice->hostMode() != QBluetoothLocalDevice::HostDiscoverable) {
+            m_localDevice->setHostMode(QBluetoothLocalDevice::HostDiscoverable);
+        } else {
+            startAdvertising();
+        }
         return;
     }
 
@@ -361,7 +370,12 @@ void BluetoothServer::start()
     qCDebug(dcBluetoothServer()) << "-------------------------------------";
 
     // Local bluetooth device
-    m_localDevice = new QBluetoothLocalDevice(this);
+    if (!m_localDevice) {
+        m_localDevice = new QBluetoothLocalDevice(this);
+        connect(m_localDevice, &QBluetoothLocalDevice::hostModeStateChanged, this, &BluetoothServer::onHostModeStateChanged);
+        connect(m_localDevice, &QBluetoothLocalDevice::deviceConnected, this, &BluetoothServer::onDeviceConnected);
+        connect(m_localDevice, &QBluetoothLocalDevice::deviceDisconnected, this, &BluetoothServer::onDeviceDisconnected);
+    }
     if (!m_localDevice->isValid()) {
         qCCritical(dcBluetoothServer()) << "Local bluetooth device is not valid.";
         delete m_localDevice;
@@ -369,13 +383,10 @@ void BluetoothServer::start()
         return;
     }
 
-    connect(m_localDevice, &QBluetoothLocalDevice::hostModeStateChanged, this, &BluetoothServer::onHostModeStateChanged);
-    connect(m_localDevice, &QBluetoothLocalDevice::deviceConnected, this, &BluetoothServer::onDeviceConnected);
-    connect(m_localDevice, &QBluetoothLocalDevice::deviceDisconnected, this, &BluetoothServer::onDeviceDisconnected);
-
     qCDebug(dcBluetoothServer()) << "Local device" << m_localDevice->name() << m_localDevice->address().toString();
-    m_localDevice->setHostMode(QBluetoothLocalDevice::HostDiscoverable);
+    qCDebug(dcBluetoothServer()) << "Current Host mode is:" << m_localDevice->hostMode();
     m_localDevice->powerOn();
+    m_localDevice->setHostMode(QBluetoothLocalDevice::HostDiscoverable);
 
     // Bluetooth low energy periperal controller
     m_controller = QLowEnergyController::createPeripheral(this);
@@ -392,8 +403,7 @@ void BluetoothServer::start()
     // Create services
     m_networkService = new NetworkService(m_controller->addService(NetworkService::serviceData(), m_controller), m_controller);    
     m_wirelessService = new WirelessService(m_controller->addService(WirelessService::serviceData(), m_controller), m_controller);
-
-    startAdvertising();
+    qDebug() << "Bluetooth Server started";
 }
 
 void BluetoothServer::stop()
@@ -429,8 +439,8 @@ void BluetoothServer::stop()
     if (m_localDevice) {
         qCDebug(dcBluetoothServer()) << "Set host mode to connectable.";
         m_localDevice->setHostMode(QBluetoothLocalDevice::HostConnectable);
-        delete m_localDevice;
-        m_localDevice = nullptr;
+//        delete m_localDevice;
+//        m_localDevice = nullptr;
     }
 
 
