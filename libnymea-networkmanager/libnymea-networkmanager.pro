@@ -5,6 +5,7 @@ target.path = /usr/lib/$$system('dpkg-architecture -q DEB_HOST_MULTIARCH')
 INSTALLS += target
 
 QT += dbus network
+QT -= gui
 
 QMAKE_CXXFLAGS += -Werror -std=c++11
 QMAKE_LFLAGS += -std=c++11
