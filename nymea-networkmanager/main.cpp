@@ -22,6 +22,10 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
+#include <QSettings>
+#include <QStandardPaths>
+#include <QFileInfo>
+#include <QMetaEnum>
 
 #include "core.h"
 #include "application.h"
@@ -77,10 +81,17 @@ int main(int argc, char *argv[])
 {
     qInstallMessageHandler(consoleLogHandler);
 
+    // Default configuration:
+    Core::Mode mode = Core::ModeOffline;
+    int timeout = 60;
+    QString advertiseName = "BT WLAN setup";
+    QString platformName = "nymea-box";
+
+
     Application application(argc, argv);
     application.setApplicationName("nymea-networkmanager");
     application.setOrganizationName("nymea");
-    application.setApplicationVersion("0.1.0");
+    application.setApplicationVersion("0.2.0");
 
     // Command line parser
     QCommandLineParser parser;
@@ -92,16 +103,16 @@ int main(int argc, char *argv[])
     QCommandLineOption debugOption(QStringList() << "d" << "debug", "Enable more debug output.");
     parser.addOption(debugOption);
 
-    QCommandLineOption advertiseNameOption(QStringList() << "a" << "advertise-name", "The name of the bluetooth server. Default \"nymea\".", "NAME");
-    advertiseNameOption.setDefaultValue("nymea");
+    QCommandLineOption advertiseNameOption(QStringList() << "a" << "advertise-name", QString("The name of the bluetooth server. Default \"%1\".").arg(advertiseName), "NAME");
+    advertiseNameOption.setDefaultValue(advertiseName);
     parser.addOption(advertiseNameOption);
 
-    QCommandLineOption platformNameOption(QStringList() << "p" << "platform-name", "The name of the platform this daemon is running. Default \"nymea-box\".", "NAME");
-    platformNameOption.setDefaultValue("nymea-box");
+    QCommandLineOption platformNameOption(QStringList() << "p" << "platform-name", QString("The name of the platform this daemon is running. Default \"%1\".").arg(platformName), "NAME");
+    platformNameOption.setDefaultValue(platformName);
     parser.addOption(platformNameOption);
 
-    QCommandLineOption timeoutOption(QStringList() << "t" << "timeout", "The timeout of the bluetooth server. Minimum value is 10. Default \"60\".", "SECONDS");
-    timeoutOption.setDefaultValue("60");
+    QCommandLineOption timeoutOption(QStringList() << "t" << "timeout", QString("The timeout of the bluetooth server. Minimum value is 10. Default \"%1\".").arg(timeout), "SECONDS");
+    timeoutOption.setDefaultValue(QString::number(timeout));
     parser.addOption(timeoutOption);
 
     QCommandLineOption modeOption(QStringList() << "m" << "mode", "Run the daemon in a specific mode. Default \"offline\".\n\n" \
@@ -109,9 +120,6 @@ int main(int argc, char *argv[])
                                   "- always: this mode enables the bluetooth server as long the application is running.\n\n" \
                                   "- start: this mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.\n\n", "offline | always | start");
     parser.addOption(modeOption);
-
-    QCommandLineOption testingOption(QStringList() << "t" << "testing", "Advertise the bluetoothserver alyways for testing.");
-    parser.addOption(testingOption);
 
     parser.process(application);
 
@@ -123,21 +131,45 @@ int main(int argc, char *argv[])
 
     QLoggingCategory::installFilter(loggingCategoryFilter);
 
-    bool timeoutValueOk = false;
-    int timeout = parser.value(timeoutOption).toInt(&timeoutValueOk);
+    bool timeoutValueOk = true;
 
-    if (!timeoutValueOk) {
-        qCCritical(dcApplication()) << QString("Invalid timeout value passed: \"%1\". Please pass an integer >= 10").arg(parser.value(timeoutOption));
-        parser.showHelp(1);
+    // Now read the cofig file, overriding defaults
+    QStringList configLocations;
+    configLocations << QStandardPaths::standardLocations(QStandardPaths::ConfigLocation);
+    configLocations << "/etc";
+    QString fileName = "/nymea/nymea-networkmanager.conf";
+    foreach (const QString &configLocation, configLocations) {
+        if (QFileInfo::exists(configLocation + fileName)) {
+            qCDebug(dcApplication) << "Using configuration file from:" << configLocation + fileName;
+            QSettings settings(configLocation + fileName, QSettings::IniFormat);
+            qCDebug(dcApplication()) << "Fooo" << settings.allKeys() << settings.childGroups();
+
+
+            if (settings.contains("Mode")) {
+                if (settings.value("Mode").toString().toLower() == "offline") {
+                    mode = Core::ModeOffline;
+                } else if (settings.value("Mode").toString().toLower() == "always") {
+                    mode = Core::ModeAlways;
+                } else if (settings.value("Mode").toString().toLower() == "start") {
+                    mode = Core::ModeStart;
+                } else {
+                    qCWarning(dcApplication()).noquote() << QString("The config file's mode \"%1\" does not match the allowed modes.").arg(settings.value("Mode").toString());
+                }
+            }
+            if (settings.contains("Timeout")) {
+                timeout = settings.value("Timeout").toInt(&timeoutValueOk);
+            }
+            if (settings.contains("AdvertiseName")) {
+                advertiseName = settings.value("AdvertiseName").toString();
+            }
+            if (settings.contains("PlatformName")) {
+                platformName = settings.value("PlatformName").toString();
+            }
+            break;
+        }
     }
 
-    if (timeout < 10) {
-        qCCritical(dcApplication()) << QString("Invalid timeout value passed: \"%1\". The minimal timeout is 10 [s].").arg(parser.value(timeoutOption));
-        parser.showHelp(1);
-    }
-
-    Core::Mode mode = Core::ModeOffline;
-
+    // Now parse command line
     if (parser.isSet(modeOption)) {
         if (parser.value(modeOption).toLower() == "offline") {
             mode = Core::ModeOffline;
@@ -150,21 +182,39 @@ int main(int argc, char *argv[])
             parser.showHelp(1);
         }
     }
+    if (parser.isSet(advertiseNameOption)) {
+        advertiseName = parser.value(advertiseNameOption);
+    }
+    if (parser.isSet(platformNameOption)) {
+        platformName = parser.value(platformNameOption);
+    }
+    if (parser.isSet(timeoutOption)) {
+        timeout = parser.value(timeoutOption).toInt(&timeoutValueOk);
+    }
+
+    // All parsed. Validate input:
+    if (!timeoutValueOk) {
+        qCCritical(dcApplication()) << QString("Invalid timeout value passed: \"%1\". Please pass an integer >= 10").arg(parser.value(timeoutOption));
+        parser.showHelp(1);
+    }
+    if (timeout < 10) {
+        qCCritical(dcApplication()) << QString("Invalid timeout value passed: \"%1\". The minimal timeout is 10 [s].").arg(parser.value(timeoutOption));
+        parser.showHelp(1);
+    }
 
     qCDebug(dcApplication()) << "=====================================";
     qCDebug(dcApplication()) << "Starting nymea-networkmanager" << application.applicationVersion();
     qCDebug(dcApplication()) << "=====================================";
-    qCDebug(dcApplication()) << "Advertising name:" << parser.value(advertiseNameOption);
-    qCDebug(dcApplication()) << "Platform name:" << parser.value(platformNameOption);
-    qCDebug(dcApplication()) << "Mode:" << parser.value(modeOption);
-    qCDebug(dcApplication()) << "Timeout:" << parser.value(timeoutOption);
+    qCDebug(dcApplication()) << "Advertising name:" << advertiseName;
+    qCDebug(dcApplication()) << "Platform name:" << platformName;
+    qCDebug(dcApplication()) << "Mode:" << mode;
+    qCDebug(dcApplication()) << "Timeout:" << timeout;
 
     // Start core
     Core::instance()->setMode(mode);
     Core::instance()->setAdvertisingTimeout(timeout);
-    Core::instance()->setAdvertiseName(parser.value(advertiseNameOption));
-    Core::instance()->setPlatformName(parser.value(platformNameOption));
-    Core::instance()->setTestingEnabled(parser.isSet(testingOption));
+    Core::instance()->setAdvertiseName(advertiseName);
+    Core::instance()->setPlatformName(platformName);
 
     Core::instance()->run();
 

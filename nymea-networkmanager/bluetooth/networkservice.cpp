@@ -257,7 +257,7 @@ NetworkService::NetworkServiceCommand NetworkService::verifyCommand(const QByteA
     if (commandData.length() != 1)
         return NetworkServiceCommandInvalid;
 
-    uint commandInteger = commandData.toHex().toUInt(0, 16);
+    uint commandInteger = commandData.toHex().toUInt(nullptr, 16);
     switch (commandInteger) {
     case NetworkServiceCommandEnableNetworking:
         return NetworkServiceCommandEnableNetworking;
@@ -344,9 +344,6 @@ void NetworkService::serviceError(const QLowEnergyService::ServiceError &error)
         break;
     case QLowEnergyService::UnknownError:
         errorString = "Unknown error";
-        break;
-    default:
-        errorString = "Unhandled error";
         break;
     }
 

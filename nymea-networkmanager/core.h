@@ -59,9 +59,6 @@ public:
     int advertisingTimeout() const;
     void setAdvertisingTimeout(const int advertisingTimeout);
 
-    bool testingEnabled() const;
-    void setTestingEnabled(bool testing);
-
     void run();
 
 private:
@@ -81,8 +78,6 @@ private:
     QString m_advertiseName;
     QString m_platformName;
     int m_advertisingTimeout = 60;
-
-    bool m_testing = false;
 
     void evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state);
 

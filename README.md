@@ -3,6 +3,18 @@
 This daemon allows to set up the wireless network using a bluetooth LE connection. The daemon will automatically start a bluetooth low energy server 
 if the system is currently not connected to any network. Once the system is connected, the daemon will shutdown the bluetooth server. 
 
+# Config file
+
+nymea-networkmanager will search for a config file in the following locations (in this order):
+
+~/.config/nymea/nymea-networkmanager.conf
+/etc/nymea/nymea-networkmanager.conf
+
+If such a config file is found, it reads values from there. There is a example config in
+this repository and it will be installed to /etc/nymea-networkmanager.conf with the dpkg package.
+
+Note: Command line parameters will have higher priority than entries in the configuration file.
+
 # Command line parameters
 
     $ nymea-network-manager --help

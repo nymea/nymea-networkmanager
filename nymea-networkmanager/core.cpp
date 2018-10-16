@@ -97,16 +97,6 @@ void Core::setAdvertisingTimeout(const int advertisingTimeout)
     m_advertisingTimeout = advertisingTimeout;
 }
 
-bool Core::testingEnabled() const
-{
-    return m_testing;
-}
-
-void Core::setTestingEnabled(bool testing)
-{
-    m_testing = testing;
-}
-
 void Core::run()
 {
     // Start the networkmanager

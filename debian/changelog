@@ -1,5 +1,12 @@
-nymea-networkmanager (0.0.1) UNRELEASED; urgency=medium
+nymea-networkmanager (0.2.0) UNRELEASED; urgency=medium
 
+  * Add support for a config file
+
+ -- Michael Zanetti <micha@MetalSonic>  Tue, 16 Oct 2018 22:10:51 +0200
+
+nymea-networkmanager (0.0.1) bionic; urgency=medium
+
+  [ Simon Stürz ]
   * Initial release.
 
- -- Simon Stürz <simon.stuerz@guh.io>  Mon, 05 Mar 2018 15:05:40 +0100
+ -- Michael Zanetti <micha@MetalSonic>  Tue, 16 Oct 2018 22:10:45 +0200
