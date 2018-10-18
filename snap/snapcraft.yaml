@@ -2,24 +2,28 @@ name: nymea-networkmanager
 version: 0.1.0
 summary: Daemon for setup wireless connection using Bluetooth LE. 
 description: |
-  The nymea-networkmanager daemon provides a bluetooth low energy server and
+  The nymea-networkmanager daemon provides a Bluetooth Low Energy server and
   allowes to configure the wireless network using the network-manager DBus connection.
+  The default behaviour of the daemon is the offline mode. If the device is not connected
+  to any LAN or WLAN connection, the Bluetooth server will start. Once the device is
+  connected to a network, the Bluetooth server will shut down automatically. The advertise name
+  is 'BT WLAN setup'.
 
 grade: stable
 confinement: classic
 
 apps:
   nymea-networkmanager:
-    command: env PATH=$PATH:$SNAP/bin nymea-networkmanager -a "BT WLAN setup" -m offline
+    command: env PATH=$PATH:$SNAP/bin qt5-launch nymea-networkmanager -a "BT WLAN setup" -m offline
     daemon: simple
     restart-condition: always
     plugs:
-      - dbus
       - bluez
       - bluetooth-control
       - network-manager
 
 parts:
+  # nymea-networkmanager
   nymea-networkmanager:
     plugin: qmake
     source: https://github.com/guh/nymea-networkmanager.git
@@ -28,23 +32,13 @@ parts:
     source-branch: master
     project-files: [ nymea-networkmanager.pro ]
     after: [ qt-5-11-1 ]
-    build-packages:
-      - qt5-default
-      - qt5-qmake
-      - qtbase5-dev
-      - qtconnectivity5-dev
-    stage-packages:
-      - libqt5gui5
-      - libqt5core5a
-      - libqt5bluetooth5
-      - libqt5network5
-      - libqt5dbus5
+
 
   # Custom launcher to support also armhf
   qt5-launch:
     plugin: dump
     build-attributes: [keep-execstack]
-    source: .
+    source: snap/
     organize:
       qt5-launch: bin/
 
@@ -81,26 +75,8 @@ parts:
       - libssl-dev
       - libudev-dev
       - libbluetooth-dev
-      - libx11-dev
-      - libx11-xcb-dev
-      - libxcb-icccm4-dev
-      - libxcb-image0-dev
-      - libxcb-keysyms1-dev
-      - libxcb-randr0-dev
-      - libxcb-render-util0-dev
-      - libxcb-render0-dev
-      - libxcb-shape0-dev
-      - libxcb-shm0-dev
-      - libxcb-sync-dev
-      - libxcb-xfixes0-dev
-      - libxcb-xinerama0-dev
-      - libxcb-xkb-dev
-      - libxcb1-dev
       - libxext-dev
       - libxi-dev
-      - libxkbcommon-dev
-      - libxkbcommon-x11-dev
-      - libxrender-dev
       - pkg-kde-tools
       - publicsuffix
       - unixodbc-dev
@@ -117,12 +93,14 @@ parts:
       - -no-rpath
       - -verbose
       - -silent
-      - -opengl
-      - es2
+      - -no-gif
+      - -no-libpng
+      - -no-libjpeg
+      - -no-opengl
       - -no-widgets
-      - -xcb
+      - -no-xcb
       - -no-gtk
-      - -fontconfig
+      - -no-fontconfig
       - -no-eglfs
       - -no-cups
       - -no-accessibility
@@ -144,19 +122,41 @@ parts:
       - -skip 
       - qtdatavis3d
       - -skip 
+      - qtdeclarative
+      - -skip 
       - qtdoc
       - -skip 
       - qtgamepad
+      - -skip 
+      - qtgraphicaleffects
+      - -skip 
+      - qtimageformats
       - -skip 
       - qtlocation
       - -skip 
       - qtmacextras
       - -skip 
+      - qtmultimedia
+      - -skip 
       - qtpurchasing
+      - -skip 
+      - qtquickcontrols
+      - -skip 
+      - qtquickcontrols2
+      - -skip 
+      - qtremoteobjects
       - -skip 
       - qtscxml
       - -skip 
       - qtsensors
+      - -skip 
+      - qtserialbus
+      - -skip 
+      - qtserialport
+      - -skip 
+      - qtspeech
+      - -skip 
+      - qtsvg
       - -skip 
       - qtvirtualkeyboard
       - -skip 
@@ -165,6 +165,10 @@ parts:
       - qtwebchannel
       - -skip 
       - qtwebengine
+      - -skip 
+      - qtwebglplugin
+      - -skip
+      - qtwebsockets
       - -skip 
       - qtwebview
       - -skip 
@@ -194,7 +198,6 @@ parts:
       - libudev1
       - libxext-dev
       - libxi6
-      - libxkbcommon0
       - perl
       - zlib1g
       - libdouble-conversion-dev
