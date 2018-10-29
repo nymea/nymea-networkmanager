@@ -99,6 +99,7 @@ public:
     NetworkManagerConnectivityState connectivityState() const;
 
     NetworkManagerError connectWifi(const QString &interface, const QString &ssid, const QString &password, bool hidden = false);
+    NetworkManagerError startAccessPoint(const QString &interface, const QString &ssid, const QString &password);
 
     // Networking
     bool networkingEnabled() const;

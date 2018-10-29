@@ -71,7 +71,7 @@ QList<WiredNetworkDevice *> NetworkManager::wiredNetworkDevices() const
     return m_wiredNetworkDevices.values();
 }
 
-/*! Returns the \l{NetworkDevice} with the given \a interface from this \l{NetworkManager}. If there is no such \a interface returns Q_NULLPTR. */
+/*! Returns the \l{NetworkDevice} with the given \a interface from this \l{NetworkManager}. If there is no such \a interface returns nullptr. */
 NetworkDevice *NetworkManager::getNetworkDevice(const QString &interface)
 {
     foreach (NetworkDevice *device, m_networkDevices.values()) {
@@ -115,8 +115,9 @@ NetworkManager::NetworkManagerError NetworkManager::connectWifi(const QString &i
     // Get wirelessNetworkDevice
     WirelessNetworkDevice *wirelessNetworkDevice = nullptr;
     foreach (WirelessNetworkDevice *networkDevice, wirelessNetworkDevices()) {
-        if (networkDevice->interface() == interface)
+        if (networkDevice->interface() == interface) {
             wirelessNetworkDevice = networkDevice;
+        }
     }
 
     if (!wirelessNetworkDevice)
@@ -129,6 +130,7 @@ NetworkManager::NetworkManagerError NetworkManager::connectWifi(const QString &i
 
     // Note: https://developer.gnome.org/NetworkManager/stable/ref-settings.html
 
+    // Create network settings for this wifi
     QVariantMap connectionSettings;
     connectionSettings.insert("autoconnect", true);
     connectionSettings.insert("id", ssid);
@@ -178,7 +180,92 @@ NetworkManager::NetworkManagerError NetworkManager::connectWifi(const QString &i
 
     // Activate connection
     QDBusMessage query = m_networkManagerInterface->call("ActivateConnection", QVariant::fromValue(connectionObjectPath), QVariant::fromValue(wirelessNetworkDevice->objectPath()), QVariant::fromValue(accessPoint->objectPath()));
-    if(query.type() != QDBusMessage::ReplyMessage) {
+    if (query.type() != QDBusMessage::ReplyMessage) {
+        qCWarning(dcNetworkManager()) << query.errorName() << query.errorMessage();
+        return NetworkManagerErrorWirelessConnectionFailed;
+    }
+
+    return NetworkManagerErrorNoError;
+}
+
+NetworkManager::NetworkManagerError NetworkManager::startAccessPoint(const QString &interface, const QString &ssid, const QString &password)
+{
+    qCDebug(dcNetworkManager()) << "Start an access point for" << interface << "SSID:" <<  ssid << "password:" << password;
+
+    // Check interface
+    if (!getNetworkDevice(interface))
+        return NetworkManagerErrorNetworkInterfaceNotFound;
+
+    // Get wirelessNetworkDevice
+    WirelessNetworkDevice *wirelessNetworkDevice = nullptr;
+    foreach (WirelessNetworkDevice *networkDevice, wirelessNetworkDevices()) {
+        if (networkDevice->interface() == interface) {
+            wirelessNetworkDevice = networkDevice;
+        }
+    }
+
+    if (!wirelessNetworkDevice)
+        return NetworkManagerErrorInvalidNetworkDeviceType;
+
+
+    // Note: https://developer.gnome.org/NetworkManager/stable/ref-settings.html
+
+    // Create network settings for access point
+    QVariantMap connectionSettings;
+    connectionSettings.insert("id", ssid);
+    connectionSettings.insert("autoconnect", false);
+    connectionSettings.insert("uuid", QUuid::createUuid().toString().remove("{").remove("}"));
+    connectionSettings.insert("type", "802-11-wireless");
+
+    QVariantMap wirelessSettings;
+    wirelessSettings.insert("band", "bg");
+    wirelessSettings.insert("mode", "ap");
+    wirelessSettings.insert("ssid", ssid.toUtf8());
+    wirelessSettings.insert("security", "802-11-wireless-security");
+    // Note: disable power save mode
+    wirelessSettings.insert("powersave", 2);
+
+    QVariantMap wirelessSecuritySettings;
+    wirelessSecuritySettings.insert("key-mgmt", "wpa-psk");
+    wirelessSecuritySettings.insert("psk", password);
+
+    QVariantMap ipv4Settings;
+    ipv4Settings.insert("method", "shared");
+
+    QVariantMap ipv6Settings;
+    ipv6Settings.insert("method", "auto");
+
+    // Build connection object
+    ConnectionSettings settings;
+    settings.insert("connection", connectionSettings);
+    settings.insert("802-11-wireless", wirelessSettings);
+    settings.insert("ipv4", ipv4Settings);
+    settings.insert("ipv6", ipv6Settings);
+    settings.insert("802-11-wireless-security", wirelessSecuritySettings);
+
+    // Remove old configuration (if there is any)
+    foreach (NetworkConnection *connection, m_networkSettings->connections()) {
+        if (connection->id() == connectionSettings.value("id")) {
+            connection->deleteConnection();
+        }
+    }
+
+    // Add connection
+    QDBusObjectPath connectionObjectPath = m_networkSettings->addConnection(settings);
+    if (connectionObjectPath.path().isEmpty())
+        return NetworkManagerErrorWirelessConnectionFailed;
+
+
+    qCDebug(dcNetworkManager()) << "Connection added" << connectionObjectPath.path();
+
+    //
+
+    // Activate connection
+    QDBusMessage query = m_networkManagerInterface->call("ActivateConnection",
+                                                         QVariant::fromValue(connectionObjectPath),
+                                                         QVariant::fromValue(wirelessNetworkDevice->objectPath()),
+                                                         QVariant::fromValue(QDBusObjectPath("/")));
+    if (query.type() != QDBusMessage::ReplyMessage) {
         qCWarning(dcNetworkManager()) << query.errorName() << query.errorMessage();
         return NetworkManagerErrorWirelessConnectionFailed;
     }

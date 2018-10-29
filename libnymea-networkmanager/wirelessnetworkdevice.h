@@ -37,12 +37,20 @@ class WirelessNetworkDevice : public NetworkDevice
 {
     Q_OBJECT
 public:
+    enum Mode {
+        ModeUnknown          = 0,
+        ModeAdhoc            = 1,
+        ModeInfrastructure   = 2,
+        ModeAccessPoint      = 3
+    };
+    Q_ENUM(Mode)
 
     explicit WirelessNetworkDevice(const QDBusObjectPath &objectPath, QObject *parent = nullptr);
 
     // Properties
     QString macAddress() const;
     int bitRate() const;
+    Mode mode() const;
     WirelessAccessPoint *activeAccessPoint();
 
     // Accesspoints
@@ -59,6 +67,7 @@ private:
 
     int m_bitRate;
     QString m_macAddress;
+    Mode m_mode = ModeUnknown;
     QDBusObjectPath m_activeAccessPointObjectPath;
 
     QHash<QDBusObjectPath, WirelessAccessPoint *> m_accessPointsTable;
@@ -66,7 +75,8 @@ private:
     void readAccessPoints();
 
     void setMacAddress(const QString &macAddress);
-    void setBitrate(const int &bitRate);
+    void setMode(Mode mode);
+    void setBitrate(int bitRate);
     void setActiveAccessPoint(const QDBusObjectPath &activeAccessPointObjectPath);
 
 private slots:
@@ -75,7 +85,8 @@ private slots:
     void propertiesChanged(const QVariantMap &properties);
 
 signals:
-    void bitRateChanged(const int &bitRate);
+    void bitRateChanged(int bitRate);
+    void modeChanged(Mode mode);
 
 };
 
