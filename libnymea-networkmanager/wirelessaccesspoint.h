@@ -68,9 +68,9 @@ private:
     QString m_ssid;
     QString m_macAddress;
     double m_frequency;
-    int m_signalStrength;
-    bool m_isProtected;
-    WirelessAccessPoint::ApSecurityModes m_securityFlags;
+    int m_signalStrength = 0;
+    bool m_isProtected = false;
+    WirelessAccessPoint::ApSecurityModes m_securityFlags = ApSecurityModeNone;
 
     void setSsid(const QString &ssid);
     void setMacAddress(const QString &macAddress);

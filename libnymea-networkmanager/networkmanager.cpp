@@ -258,8 +258,8 @@ bool NetworkManager::init()
 
     // Init properties
     setVersion(m_networkManagerInterface->property("Version").toString());
-    setState((NetworkManagerState)m_networkManagerInterface->property("State").toUInt());
-    setConnectivityState((NetworkManagerConnectivityState)m_networkManagerInterface->property("Connectivity").toUInt());
+    setState(static_cast<NetworkManagerState>(m_networkManagerInterface->property("State").toUInt()));
+    setConnectivityState(static_cast<NetworkManagerConnectivityState>(m_networkManagerInterface->property("Connectivity").toUInt()));
     setNetworkingEnabled(m_networkManagerInterface->property("NetworkingEnabled").toBool());
     setWirelessEnabled(m_networkManagerInterface->property("WirelessEnabled").toBool());
 
@@ -486,7 +486,7 @@ void NetworkManager::onPropertiesChanged(const QVariantMap &properties)
         setVersion(properties.value("Version").toString());
 
     if (properties.contains("State"))
-        setState((NetworkManagerState)properties.value("State").toUInt());
+        setState(static_cast<NetworkManagerState>(properties.value("State").toUInt()));
 
     if (properties.contains("Connectivity"))
         setConnectivityState(NetworkManagerConnectivityState(properties.value("Connectivity").toUInt()));
