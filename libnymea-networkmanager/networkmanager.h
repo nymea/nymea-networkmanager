@@ -80,7 +80,7 @@ public:
     };
     Q_ENUM(NetworkManagerError)
 
-    explicit NetworkManager(QObject *parent = 0);
+    explicit NetworkManager(QObject *parent = nullptr);
     ~NetworkManager();
 
     bool available() const;

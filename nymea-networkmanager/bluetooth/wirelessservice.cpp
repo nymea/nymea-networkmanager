@@ -146,9 +146,6 @@ QByteArray WirelessService::getWirelessNetworkDeviceState(const NetworkDevice::N
         return QByteArray::fromHex("0b");
     case NetworkDevice::NetworkDeviceStateFailed:
         return QByteArray::fromHex("0c");
-    default:
-        qCWarning(dcBluetoothServer()) << "WirelessService: Unhandled wireless network device state." << state;
-        break;
     }
 
     // Unknown
@@ -182,8 +179,8 @@ void WirelessService::streamData(const QVariantMap &responseMap)
 QVariantMap WirelessService::createResponse(const WirelessService::WirelessServiceCommand &command, const WirelessService::WirelessServiceResponse &responseCode)
 {
     QVariantMap response;
-    response.insert("c", (int)command);
-    response.insert("r", (int)responseCode);
+    response.insert("c", static_cast<int>(command));
+    response.insert("r", static_cast<int>(responseCode));
     return response;
 }
 
@@ -328,7 +325,7 @@ void WirelessService::commandGetCurrentConnection(const QVariantMap &request)
         connectionDataMap.insert("e", device->activeAccessPoint()->ssid());
         connectionDataMap.insert("m", device->activeAccessPoint()->macAddress());
         connectionDataMap.insert("s", device->activeAccessPoint()->signalStrength());
-        connectionDataMap.insert("p", (int)device->activeAccessPoint()->isProtected());
+        connectionDataMap.insert("p", static_cast<int>(device->activeAccessPoint()->isProtected()));
         connectionDataMap.insert("i", address.toString());
     }
 
@@ -422,9 +419,6 @@ void WirelessService::serviceError(const QLowEnergyService::ServiceError &error)
         break;
     case QLowEnergyService::UnknownError:
         errorString = "Unknown error";
-        break;
-    default:
-        errorString = "Unhandled error";
         break;
     }
 

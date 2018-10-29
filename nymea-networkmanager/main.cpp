@@ -87,7 +87,6 @@ int main(int argc, char *argv[])
     QString advertiseName = "BT WLAN setup";
     QString platformName = "nymea-box";
 
-
     Application application(argc, argv);
     application.setApplicationName("nymea-networkmanager");
     application.setOrganizationName("nymea");
@@ -115,7 +114,7 @@ int main(int argc, char *argv[])
     timeoutOption.setDefaultValue(QString::number(timeout));
     parser.addOption(timeoutOption);
 
-    QCommandLineOption modeOption(QStringList() << "m" << "mode", "Run the daemon in a specific mode. Default \"offline\".\n\n" \
+    QCommandLineOption modeOption(QStringList() << "m" << "mode", "Run the daemon in a specific mode. Default is \"offline\".\n\n" \
                                   "- offline: this mode starts the bluetooth server once the device is offline and not connected to any LAN network.\n\n" \
                                   "- always: this mode enables the bluetooth server as long the application is running.\n\n" \
                                   "- start: this mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.\n\n", "offline | always | start");

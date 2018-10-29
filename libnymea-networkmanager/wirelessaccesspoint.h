@@ -51,7 +51,7 @@ public:
     };
     Q_DECLARE_FLAGS(ApSecurityModes, ApSecurityMode)
 
-    explicit WirelessAccessPoint(const QDBusObjectPath &objectPath, QObject *parent = 0);
+    explicit WirelessAccessPoint(const QDBusObjectPath &objectPath, QObject *parent = nullptr);
 
     QDBusObjectPath objectPath() const;
 

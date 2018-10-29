@@ -97,8 +97,6 @@ private slots:
     void onNetworkManagerWirelessDeviceAdded(WirelessNetworkDevice *wirelessDevice);
     void onNetworkManagerWirelessDeviceRemoved(const QString &interface);
 
-
-
     // Wireless device
     void onWirelessDeviceBitRateChanged(int bitRate);
     void onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState state);

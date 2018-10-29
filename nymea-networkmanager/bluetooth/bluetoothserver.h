@@ -47,7 +47,7 @@ class BluetoothServer : public QObject
     Q_OBJECT
 public:
 
-    explicit BluetoothServer(QObject *parent = 0);
+    explicit BluetoothServer(QObject *parent = nullptr);
     ~BluetoothServer();
 
     QString machineId() const;

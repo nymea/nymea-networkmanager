@@ -113,7 +113,7 @@ NetworkManager::NetworkManagerError NetworkManager::connectWifi(const QString &i
         return NetworkManagerErrorNetworkInterfaceNotFound;
 
     // Get wirelessNetworkDevice
-    WirelessNetworkDevice *wirelessNetworkDevice = 0;
+    WirelessNetworkDevice *wirelessNetworkDevice = nullptr;
     foreach (WirelessNetworkDevice *networkDevice, wirelessNetworkDevices()) {
         if (networkDevice->interface() == interface)
             wirelessNetworkDevice = networkDevice;

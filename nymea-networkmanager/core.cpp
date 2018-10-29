@@ -118,8 +118,6 @@ void Core::run()
     case ModeOffline:
         evaluateNetworkManagerState(m_networkManager->state());
         break;
-    default:
-        break;
     }
 
 }
@@ -259,8 +257,6 @@ void Core::onBluetoothServerRunningChanged(bool running)
         case ModeOffline:
             evaluateNetworkManagerState(m_networkManager->state());
             break;
-        default:
-            break;
         }
     }
 }
@@ -304,8 +300,6 @@ void Core::onNetworkManagerAvailableChanged(const bool &available)
         break;
     case ModeOffline:
         evaluateNetworkManagerState(m_networkManager->state());
-        break;
-    default:
         break;
     }
 }

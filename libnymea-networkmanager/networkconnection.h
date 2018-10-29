@@ -38,7 +38,7 @@ class NetworkConnection : public QObject
 {
     Q_OBJECT
 public:
-    explicit NetworkConnection(const QDBusObjectPath &objectPath, QObject *parent = 0);
+    explicit NetworkConnection(const QDBusObjectPath &objectPath, QObject *parent = nullptr);
 
     void deleteConnection();
 

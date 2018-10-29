@@ -53,7 +53,7 @@ public:
     };
     Q_ENUM(NetworkServiceResponse)
 
-    explicit NetworkService(QLowEnergyService *service, QObject *parent = 0);
+    explicit NetworkService(QLowEnergyService *service, QObject *parent = nullptr);
     ~NetworkService();
 
     QLowEnergyService *service();

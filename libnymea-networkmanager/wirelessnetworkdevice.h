@@ -38,7 +38,7 @@ class WirelessNetworkDevice : public NetworkDevice
     Q_OBJECT
 public:
 
-    explicit WirelessNetworkDevice(const QDBusObjectPath &objectPath, QObject *parent = 0);
+    explicit WirelessNetworkDevice(const QDBusObjectPath &objectPath, QObject *parent = nullptr);
 
     // Properties
     QString macAddress() const;
@@ -54,11 +54,11 @@ public:
     void scanWirelessNetworks();
 
 private:
-    QDBusInterface *m_wirelessInterface;
+    QDBusInterface *m_wirelessInterface = nullptr;
+    WirelessAccessPoint *m_activeAccessPoint = nullptr;
 
-    QString m_macAddress;
     int m_bitRate;
-    WirelessAccessPoint *m_activeAccessPoint;
+    QString m_macAddress;
     QDBusObjectPath m_activeAccessPointObjectPath;
 
     QHash<QDBusObjectPath, WirelessAccessPoint *> m_accessPointsTable;
