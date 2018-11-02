@@ -50,9 +50,9 @@ NetworkConnection::NetworkConnection(const QDBusObjectPath &objectPath, QObject 
     const QDBusArgument &argument = query.arguments().at(0).value<QDBusArgument>();
     m_connectionSettings = qdbus_cast<ConnectionSettings>(argument);
 
-    foreach (const QVariant &connectionVariant, m_connectionSettings.values()) {
-        qCDebug(dcNetworkManager()) << connectionVariant;
-    }
+//    foreach (const QVariant &connectionVariant, m_connectionSettings.values()) {
+//        qCDebug(dcNetworkManager()) << connectionVariant;
+//    }
 }
 
 /*! Delete this \l{NetworkConnection} in the \l{NetworkManager}. */

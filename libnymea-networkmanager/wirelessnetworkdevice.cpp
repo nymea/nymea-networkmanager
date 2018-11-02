@@ -224,6 +224,10 @@ void WirelessNetworkDevice::propertiesChanged(const QVariantMap &properties)
 
     if (properties.contains("ActiveAccessPoint"))
         setActiveAccessPoint(qdbus_cast<QDBusObjectPath>(properties.value("ActiveAccessPoint")));
+
+    if (properties.contains("Mode"))
+        setMode(static_cast<Mode>(m_wirelessInterface->property("Mode").toUInt()));
+
 }
 
 /*! Writes the given \a device to the given to \a debug. \sa WirelessNetworkDevice, */

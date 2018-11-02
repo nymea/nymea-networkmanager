@@ -430,7 +430,6 @@ void BluetoothServer::stop()
         m_localDevice = nullptr;
     }
 
-
     setConnected(false);
     setRunning(false);
 }
@@ -463,6 +462,12 @@ void BluetoothServer::onWirelessDeviceBitRateChanged(int bitRate)
 {
     if (m_wirelessService)
         m_wirelessService->onWirelessDeviceBitRateChanged(bitRate);
+}
+
+void BluetoothServer::onWirelessDeviceModeChanged(WirelessNetworkDevice::Mode mode)
+{
+    if (m_wirelessService)
+        m_wirelessService->onWirelessModeChanged(mode);
 }
 
 void BluetoothServer::onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState state)

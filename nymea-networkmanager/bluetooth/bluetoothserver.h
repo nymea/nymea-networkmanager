@@ -120,6 +120,7 @@ public slots:
 
     // Wireless device
     void onWirelessDeviceBitRateChanged(int bitRate);
+    void onWirelessDeviceModeChanged(WirelessNetworkDevice::Mode mode);
     void onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState state);
 
 };

@@ -271,8 +271,11 @@ void Core::onBluetoothServerConnectedChanged(bool connected)
         m_bluetoothServer->onNetworkManagerStateChanged(m_networkManager->state());
         m_bluetoothServer->onNetworkingEnabledChanged(m_networkManager->networkingEnabled());
         m_bluetoothServer->onWirelessNetworkingEnabledChanged(m_networkManager->wirelessEnabled());
-        if (m_wirelessDevice)
+
+        if (m_wirelessDevice) {
             m_bluetoothServer->onWirelessDeviceStateChanged(m_wirelessDevice->deviceState());
+            m_bluetoothServer->onWirelessDeviceModeChanged(m_wirelessDevice->mode());
+        }
 
     } else {
         m_advertisingTimer->stop();
@@ -333,7 +336,8 @@ void Core::onNetworkManagerWirelessDeviceAdded(WirelessNetworkDevice *wirelessDe
     }
 
     m_wirelessDevice = wirelessDevice;
-    connect(m_wirelessDevice, &WiredNetworkDevice::stateChanged, this, &Core::onWirelessDeviceStateChanged);
+    connect(m_wirelessDevice, &WirelessNetworkDevice::stateChanged, this, &Core::onWirelessDeviceStateChanged);
+    connect(m_wirelessDevice, &WirelessNetworkDevice::modeChanged, this, &Core::onWirelessDeviceModeChanged);
 }
 
 void Core::onNetworkManagerWirelessDeviceRemoved(const QString &interface)
@@ -344,7 +348,7 @@ void Core::onNetworkManagerWirelessDeviceRemoved(const QString &interface)
     }
 
     if (m_wirelessDevice->interface() == interface) {
-        disconnect(m_wirelessDevice, &WiredNetworkDevice::stateChanged, this, &Core::onWirelessDeviceStateChanged);
+        disconnect(m_wirelessDevice, &WirelessNetworkDevice::stateChanged, this, &Core::onWirelessDeviceStateChanged);
         m_wirelessDevice = nullptr;
     }
 }
@@ -353,6 +357,12 @@ void Core::onWirelessDeviceBitRateChanged(int bitRate)
 {
     qCDebug(dcApplication()) << "Wireless device changed bitrate" << bitRate;
     m_bluetoothServer->onWirelessDeviceBitRateChanged(bitRate);
+}
+
+void Core::onWirelessDeviceModeChanged(WirelessNetworkDevice::Mode mode)
+{
+    qCDebug(dcApplication()) << "Wireless device mode" << mode;
+    m_bluetoothServer->onWirelessDeviceModeChanged(mode);
 }
 
 void Core::onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState state)
