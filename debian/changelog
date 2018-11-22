@@ -1,3 +1,9 @@
+nymea-networkmanager (0.3.1) UNRELEASED; urgency=medium
+
+  * Fix modes for access-point
+
+ -- Simon Stürz <simon.stuerz@guh.io>  Thu, 22 Nov 2018 12:50:56 +0100
+
 nymea-networkmanager (0.3.0) stretch; urgency=medium
 
   * Add access point mode for creating wireless access points
