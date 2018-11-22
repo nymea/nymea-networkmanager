@@ -175,7 +175,7 @@ void Core::evaluateNetworkManagerState(const NetworkManager::NetworkManagerState
         return;
 
     // Note: if the wireless device is in the access point mode, the bluetooth server should stop
-    if (m_wirelessDevice->mode() == WirelessNetworkDevice::ModeAccessPoint) {
+    if (m_wirelessDevice && m_wirelessDevice->mode() == WirelessNetworkDevice::ModeAccessPoint) {
         stopService();
         return;
     }
@@ -237,10 +237,10 @@ void Core::startService()
 
 void Core::stopService()
 {
-    if (m_bluetoothServer->running())
+    if (m_bluetoothServer && m_bluetoothServer->running()) {
         qCDebug(dcApplication()) << "Stop bluetooth service";
-
-    m_bluetoothServer->stop();
+        m_bluetoothServer->stop();
+    }
 }
 
 void Core::onAdvertisingTimeout()
@@ -354,6 +354,9 @@ void Core::onNetworkManagerWirelessEnabledChanged(bool enabled)
 void Core::onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state)
 {
     qCDebug(dcApplication()) << state;
+    if (!m_bluetoothServer)
+        return;
+
     m_bluetoothServer->onNetworkManagerStateChanged(state);
     evaluateNetworkManagerState(state);
 }
