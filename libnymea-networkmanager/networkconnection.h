@@ -42,6 +42,8 @@ public:
 
     void deleteConnection();
 
+    static void registerTypes();
+
     QDBusObjectPath objectPath() const;
     ConnectionSettings connectionSettings() const;
 

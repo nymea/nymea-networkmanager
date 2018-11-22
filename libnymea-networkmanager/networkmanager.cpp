@@ -30,11 +30,12 @@
 NetworkManager::NetworkManager(QObject *parent) :
     QObject(parent)
 {
+    NetworkConnection::registerTypes();
+
     // Get notification when network-manager appears/disappears on DBus
     m_serviceWatcher = new QDBusServiceWatcher(NetworkManagerUtils::networkManagerServiceString(), QDBusConnection::systemBus(), QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration, this);
     connect(m_serviceWatcher, &QDBusServiceWatcher::serviceRegistered, this, &NetworkManager::onServiceRegistered);
     connect(m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered, this, &NetworkManager::onServiceUnregistered);
-
 }
 
 NetworkManager::~NetworkManager()
