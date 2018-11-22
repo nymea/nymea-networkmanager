@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     Application application(argc, argv);
     application.setApplicationName("nymea-networkmanager");
     application.setOrganizationName("nymea");
-    application.setApplicationVersion("0.2.0");
+    application.setApplicationVersion("0.3.0");
 
     // Command line parser
     QCommandLineParser parser;
@@ -115,9 +115,10 @@ int main(int argc, char *argv[])
     parser.addOption(timeoutOption);
 
     QCommandLineOption modeOption(QStringList() << "m" << "mode", "Run the daemon in a specific mode. Default is \"offline\".\n\n" \
-                                  "- offline: this mode starts the bluetooth server once the device is offline and not connected to any LAN network.\n\n" \
-                                  "- always: this mode enables the bluetooth server as long the application is running.\n\n" \
-                                  "- start: this mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.\n\n", "offline | always | start");
+                                                                  "- offline: this mode starts the bluetooth server once the device is offline and not connected to any LAN network.\n\n" \
+                                                                  "- once: this mode starts the bluetooth server only if no network configuration exists. Once a network connection exists the server will never start again.\n\n" \
+                                                                  "- always: this mode enables the bluetooth server as long the application is running.\n\n" \
+                                                                  "- start: this mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.\n\n", "offline | once | always | start");
     parser.addOption(modeOption);
 
     parser.process(application);
@@ -141,8 +142,6 @@ int main(int argc, char *argv[])
         if (QFileInfo::exists(configLocation + fileName)) {
             qCDebug(dcApplication) << "Using configuration file from:" << configLocation + fileName;
             QSettings settings(configLocation + fileName, QSettings::IniFormat);
-            qCDebug(dcApplication()) << "Fooo" << settings.allKeys() << settings.childGroups();
-
 
             if (settings.contains("Mode")) {
                 if (settings.value("Mode").toString().toLower() == "offline") {
@@ -151,6 +150,8 @@ int main(int argc, char *argv[])
                     mode = Core::ModeAlways;
                 } else if (settings.value("Mode").toString().toLower() == "start") {
                     mode = Core::ModeStart;
+                } else if (settings.value("Mode").toString().toLower() == "once") {
+                    mode = Core::ModeOnce;
                 } else {
                     qCWarning(dcApplication()).noquote() << QString("The config file's mode \"%1\" does not match the allowed modes.").arg(settings.value("Mode").toString());
                 }
@@ -176,6 +177,8 @@ int main(int argc, char *argv[])
             mode = Core::ModeAlways;
         } else if (parser.value(modeOption).toLower() == "start") {
             mode = Core::ModeStart;
+        } else if (parser.value(modeOption).toLower() == "once") {
+            mode = Core::ModeOnce;
         } else {
             qCWarning(dcApplication()).noquote() << QString("The given mode \"%1\" does not match the allowed modes.").arg(parser.value(modeOption));
             parser.showHelp(1);

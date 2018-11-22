@@ -118,6 +118,14 @@ void Core::run()
     case ModeOffline:
         evaluateNetworkManagerState(m_networkManager->state());
         break;
+    case ModeOnce:
+        if (m_networkManager->networkSettings()->connections().isEmpty()) {
+            qCDebug(dcApplication()) << "Start the bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
+            startService();
+        } else {
+            qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
+        }
+        break;
     }
 
 }
@@ -257,6 +265,14 @@ void Core::onBluetoothServerRunningChanged(bool running)
         case ModeOffline:
             evaluateNetworkManagerState(m_networkManager->state());
             break;
+        case ModeOnce:
+            if (m_networkManager->networkSettings()->connections().isEmpty()) {
+                qCDebug(dcApplication()) << "Start the bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
+                startService();
+            } else {
+                qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
+            }
+            break;
         }
     }
 }
@@ -303,6 +319,14 @@ void Core::onNetworkManagerAvailableChanged(const bool &available)
         break;
     case ModeOffline:
         evaluateNetworkManagerState(m_networkManager->state());
+        break;
+    case ModeOnce:
+        if (m_networkManager->networkSettings()->connections().isEmpty()) {
+            qCDebug(dcApplication()) << "Start the bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
+            startService();
+        } else {
+            qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
+        }
         break;
     }
 }
@@ -362,6 +386,9 @@ void Core::onWirelessDeviceBitRateChanged(int bitRate)
 void Core::onWirelessDeviceModeChanged(WirelessNetworkDevice::Mode mode)
 {
     qCDebug(dcApplication()) << "Wireless device mode" << mode;
+
+    // TODO: check what to do if in ap mode
+
     m_bluetoothServer->onWirelessDeviceModeChanged(mode);
 }
 

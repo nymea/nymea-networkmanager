@@ -71,6 +71,12 @@ QList<WiredNetworkDevice *> NetworkManager::wiredNetworkDevices() const
     return m_wiredNetworkDevices.values();
 }
 
+/*! Returns the \l{NetworkSettings} from this \l{NetworkManager}. */
+NetworkSettings *NetworkManager::networkSettings() const
+{
+    return m_networkSettings;
+}
+
 /*! Returns the \l{NetworkDevice} with the given \a interface from this \l{NetworkManager}. If there is no such \a interface returns nullptr. */
 NetworkDevice *NetworkManager::getNetworkDevice(const QString &interface)
 {

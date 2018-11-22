@@ -36,6 +36,7 @@ public:
     enum Mode {
         ModeAlways,
         ModeOffline,
+        ModeOnce,
         ModeStart
     };
     Q_ENUM(Mode)

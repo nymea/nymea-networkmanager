@@ -1,6 +1,7 @@
 nymea-networkmanager (0.3.0) stretch; urgency=medium
 
   * Add access point mode for creating wireless access points
+  * Add once mode
 
  -- Simon Stürz <simon.stuerz@guh.io>  Mon, 29 Oct 2018 14:46:56 +0100
 
