@@ -30,6 +30,7 @@ NetworkConnection::NetworkConnection(const QDBusObjectPath &objectPath, QObject 
     QObject(parent),
     m_objectPath(objectPath)
 {
+    qRegisterMetaType<ConnectionSettings>("ConnectionSettings");
     qDBusRegisterMetaType<ConnectionSettings>();
 
     m_connectionInterface = new QDBusInterface(NetworkManagerUtils::networkManagerServiceString(), m_objectPath.path(), NetworkManagerUtils::connectionsInterfaceString(), QDBusConnection::systemBus(), this);

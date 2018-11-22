@@ -60,6 +60,7 @@ private:
     ConnectionSettings m_connectionSettings;
 };
 
+Q_DECLARE_METATYPE(ConnectionSettings)
 QDebug operator<<(QDebug debug, NetworkConnection *networkConnection);
 
 #endif // NETWORKCONNECTION_H

@@ -174,6 +174,12 @@ void Core::evaluateNetworkManagerState(const NetworkManager::NetworkManagerState
     if (m_mode != ModeOffline)
         return;
 
+    // Note: if the wireless device is in the access point mode, the bluetooth server should stop
+    if (m_wirelessDevice->mode() == WirelessNetworkDevice::ModeAccessPoint) {
+        stopService();
+        return;
+    }
+
     switch (state) {
     case NetworkManager::NetworkManagerStateConnectedGlobal:
         // We are online
