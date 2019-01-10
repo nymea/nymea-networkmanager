@@ -79,6 +79,7 @@ private:
     QString m_advertiseName;
     QString m_platformName;
     int m_advertisingTimeout = 60;
+    bool m_initRunning = true;
 
     void evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state);
 
@@ -86,6 +87,8 @@ private:
     void stopService();
 
 private slots:
+    void postRun();
+
     void onAdvertisingTimeout();
 
     void onBluetoothServerRunningChanged(bool running);

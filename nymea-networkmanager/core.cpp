@@ -105,29 +105,8 @@ void Core::run()
         return;
     }
 
-    switch (m_mode) {
-    case ModeAlways:
-        qCDebug(dcApplication()) << "Start the bluetooth service because of \"always\" mode.";
-        startService();
-        break;
-    case ModeStart:
-        qCDebug(dcApplication()) << "Start the bluetooth service because of \"start\" mode.";
-        startService();
-        m_advertisingTimer->start(m_advertisingTimeout * 1000);
-        break;
-    case ModeOffline:
-        evaluateNetworkManagerState(m_networkManager->state());
-        break;
-    case ModeOnce:
-        if (m_networkManager->networkSettings()->connections().isEmpty()) {
-            qCDebug(dcApplication()) << "Start the bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
-            startService();
-        } else {
-            qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
-        }
-        break;
-    }
-
+    // Note: give network-manager more time to start and get online status
+    QTimer::singleShot(5000, this, &Core::postRun);
 }
 
 Core::Core(QObject *parent) :
@@ -243,6 +222,35 @@ void Core::stopService()
     }
 }
 
+void Core::postRun()
+{
+    qCDebug(dcApplication()) << "Post run service";
+    m_initRunning = false;
+
+    switch (m_mode) {
+    case ModeAlways:
+        qCDebug(dcApplication()) << "Start the bluetooth service because of \"always\" mode.";
+        startService();
+        break;
+    case ModeStart:
+        qCDebug(dcApplication()) << "Start the bluetooth service because of \"start\" mode.";
+        startService();
+        m_advertisingTimer->start(m_advertisingTimeout * 1000);
+        break;
+    case ModeOffline:
+        evaluateNetworkManagerState(m_networkManager->state());
+        break;
+    case ModeOnce:
+        if (m_networkManager->networkSettings()->connections().isEmpty()) {
+            qCDebug(dcApplication()) << "Start the bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
+            startService();
+        } else {
+            qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
+        }
+        break;
+    }
+}
+
 void Core::onAdvertisingTimeout()
 {
     if (m_mode != ModeStart)
@@ -310,6 +318,11 @@ void Core::onNetworkManagerAvailableChanged(const bool &available)
     if (!available) {
         qCWarning(dcApplication()) << "Networkmanager is not available any more.";
         m_bluetoothServer->onNetworkManagerAvailableChanged(m_networkManager->available());
+        return;
+    }
+
+    if (m_initRunning) {
+        qCDebug(dcApplication()) << "Init is running";
         return;
     }
 
