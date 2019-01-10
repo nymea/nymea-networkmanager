@@ -30,6 +30,12 @@ You can run the daemon directly with following command
     $ sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/libnymea-networkmanager/ ./nymea-networkmanager/nymea-networkmanager
 
 
+## Building the debian package
+In order to build a debian package you can do following:
+
+    $ sudo apt install debhelper dh-systemd
+    $ dpkg-buildpackage -us -uc -tc
+
 # Config file
 
 nymea-networkmanager will search for a config file in the following locations (in this order):
