@@ -36,6 +36,7 @@ public:
     enum Mode {
         ModeAlways,
         ModeOffline,
+        ModeOnce,
         ModeStart
     };
     Q_ENUM(Mode)
@@ -78,6 +79,7 @@ private:
     QString m_advertiseName;
     QString m_platformName;
     int m_advertisingTimeout = 60;
+    bool m_initRunning = true;
 
     void evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state);
 
@@ -85,6 +87,8 @@ private:
     void stopService();
 
 private slots:
+    void postRun();
+
     void onAdvertisingTimeout();
 
     void onBluetoothServerRunningChanged(bool running);
@@ -97,10 +101,9 @@ private slots:
     void onNetworkManagerWirelessDeviceAdded(WirelessNetworkDevice *wirelessDevice);
     void onNetworkManagerWirelessDeviceRemoved(const QString &interface);
 
-
-
     // Wireless device
     void onWirelessDeviceBitRateChanged(int bitRate);
+    void onWirelessDeviceModeChanged(WirelessNetworkDevice::Mode mode);
     void onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState state);
 
     void onNymeaServiceAvailableChanged(bool available);

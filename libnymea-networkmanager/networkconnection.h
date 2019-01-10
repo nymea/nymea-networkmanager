@@ -38,9 +38,11 @@ class NetworkConnection : public QObject
 {
     Q_OBJECT
 public:
-    explicit NetworkConnection(const QDBusObjectPath &objectPath, QObject *parent = 0);
+    explicit NetworkConnection(const QDBusObjectPath &objectPath, QObject *parent = nullptr);
 
     void deleteConnection();
+
+    static void registerTypes();
 
     QDBusObjectPath objectPath() const;
     ConnectionSettings connectionSettings() const;
@@ -60,6 +62,7 @@ private:
     ConnectionSettings m_connectionSettings;
 };
 
+Q_DECLARE_METATYPE(ConnectionSettings)
 QDebug operator<<(QDebug debug, NetworkConnection *networkConnection);
 
 #endif // NETWORKCONNECTION_H

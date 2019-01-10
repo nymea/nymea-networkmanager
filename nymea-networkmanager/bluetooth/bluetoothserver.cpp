@@ -221,8 +221,6 @@ void BluetoothServer::onHostModeStateChanged(const QBluetoothLocalDevice::HostMo
     case QBluetoothLocalDevice::HostDiscoverableLimitedInquiry:
         qCDebug(dcBluetoothServer()) << "Bluetooth host in discoverable limited inquiry mode.";
         break;
-    default:
-        break;
     }
 }
 
@@ -283,8 +281,6 @@ void BluetoothServer::onControllerStateChanged(const QLowEnergyController::Contr
         qCDebug(dcBluetoothServer()) << "Controller state advertising...";
         setRunning(true);
         break;
-    default:
-        break;
     }
 }
 
@@ -337,9 +333,6 @@ void BluetoothServer::serviceError(const QLowEnergyService::ServiceError &error)
         break;
     case QLowEnergyService::UnknownError:
         errorString = "Unknown error";
-        break;
-    default:
-        errorString = "Unhandled error";
         break;
     }
 
@@ -437,7 +430,6 @@ void BluetoothServer::stop()
         m_localDevice = nullptr;
     }
 
-
     setConnected(false);
     setRunning(false);
 }
@@ -470,6 +462,12 @@ void BluetoothServer::onWirelessDeviceBitRateChanged(int bitRate)
 {
     if (m_wirelessService)
         m_wirelessService->onWirelessDeviceBitRateChanged(bitRate);
+}
+
+void BluetoothServer::onWirelessDeviceModeChanged(WirelessNetworkDevice::Mode mode)
+{
+    if (m_wirelessService)
+        m_wirelessService->onWirelessModeChanged(mode);
 }
 
 void BluetoothServer::onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState state)

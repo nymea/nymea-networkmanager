@@ -41,8 +41,8 @@ class NetworkManager : public QObject
 {
     Q_OBJECT
     Q_ENUMS(NetworkManagerState)
-    Q_ENUMS(NetworkManagerConnectivityState)
     Q_ENUMS(NetworkManagerError)
+    Q_ENUMS(NetworkManagerConnectivityState)
 
 public:
     enum NetworkManagerState {
@@ -80,7 +80,7 @@ public:
     };
     Q_ENUM(NetworkManagerError)
 
-    explicit NetworkManager(QObject *parent = 0);
+    explicit NetworkManager(QObject *parent = nullptr);
     ~NetworkManager();
 
     bool available() const;
@@ -90,6 +90,7 @@ public:
     QList<WirelessNetworkDevice *> wirelessNetworkDevices() const;
     QList<WiredNetworkDevice *> wiredNetworkDevices() const;
 
+    NetworkSettings *networkSettings() const;
     NetworkDevice *getNetworkDevice(const QString &interface);
 
     // Properties
@@ -99,6 +100,7 @@ public:
     NetworkManagerConnectivityState connectivityState() const;
 
     NetworkManagerError connectWifi(const QString &interface, const QString &ssid, const QString &password, bool hidden = false);
+    NetworkManagerError startAccessPoint(const QString &interface, const QString &ssid, const QString &password);
 
     // Networking
     bool networkingEnabled() const;

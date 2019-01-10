@@ -105,23 +105,8 @@ void Core::run()
         return;
     }
 
-    switch (m_mode) {
-    case ModeAlways:
-        qCDebug(dcApplication()) << "Start the bluetooth service because of \"always\" mode.";
-        startService();
-        break;
-    case ModeStart:
-        qCDebug(dcApplication()) << "Start the bluetooth service because of \"start\" mode.";
-        startService();
-        m_advertisingTimer->start(m_advertisingTimeout * 1000);
-        break;
-    case ModeOffline:
-        evaluateNetworkManagerState(m_networkManager->state());
-        break;
-    default:
-        break;
-    }
-
+    // Note: give network-manager more time to start and get online status
+    QTimer::singleShot(5000, this, &Core::postRun);
 }
 
 Core::Core(QObject *parent) :
@@ -167,6 +152,12 @@ void Core::evaluateNetworkManagerState(const NetworkManager::NetworkManagerState
 {
     if (m_mode != ModeOffline)
         return;
+
+    // Note: if the wireless device is in the access point mode, the bluetooth server should stop
+    if (m_wirelessDevice && m_wirelessDevice->mode() == WirelessNetworkDevice::ModeAccessPoint) {
+        stopService();
+        return;
+    }
 
     switch (state) {
     case NetworkManager::NetworkManagerStateConnectedGlobal:
@@ -225,10 +216,39 @@ void Core::startService()
 
 void Core::stopService()
 {
-    if (m_bluetoothServer->running())
+    if (m_bluetoothServer && m_bluetoothServer->running()) {
         qCDebug(dcApplication()) << "Stop bluetooth service";
+        m_bluetoothServer->stop();
+    }
+}
 
-    m_bluetoothServer->stop();
+void Core::postRun()
+{
+    qCDebug(dcApplication()) << "Post run service";
+    m_initRunning = false;
+
+    switch (m_mode) {
+    case ModeAlways:
+        qCDebug(dcApplication()) << "Start the bluetooth service because of \"always\" mode.";
+        startService();
+        break;
+    case ModeStart:
+        qCDebug(dcApplication()) << "Start the bluetooth service because of \"start\" mode.";
+        startService();
+        m_advertisingTimer->start(m_advertisingTimeout * 1000);
+        break;
+    case ModeOffline:
+        evaluateNetworkManagerState(m_networkManager->state());
+        break;
+    case ModeOnce:
+        if (m_networkManager->networkSettings()->connections().isEmpty()) {
+            qCDebug(dcApplication()) << "Start the bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
+            startService();
+        } else {
+            qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
+        }
+        break;
+    }
 }
 
 void Core::onAdvertisingTimeout()
@@ -259,7 +279,13 @@ void Core::onBluetoothServerRunningChanged(bool running)
         case ModeOffline:
             evaluateNetworkManagerState(m_networkManager->state());
             break;
-        default:
+        case ModeOnce:
+            if (m_networkManager->networkSettings()->connections().isEmpty()) {
+                qCDebug(dcApplication()) << "Start the bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
+                startService();
+            } else {
+                qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
+            }
             break;
         }
     }
@@ -275,8 +301,11 @@ void Core::onBluetoothServerConnectedChanged(bool connected)
         m_bluetoothServer->onNetworkManagerStateChanged(m_networkManager->state());
         m_bluetoothServer->onNetworkingEnabledChanged(m_networkManager->networkingEnabled());
         m_bluetoothServer->onWirelessNetworkingEnabledChanged(m_networkManager->wirelessEnabled());
-        if (m_wirelessDevice)
+
+        if (m_wirelessDevice) {
             m_bluetoothServer->onWirelessDeviceStateChanged(m_wirelessDevice->deviceState());
+            m_bluetoothServer->onWirelessDeviceModeChanged(m_wirelessDevice->mode());
+        }
 
     } else {
         m_advertisingTimer->stop();
@@ -289,6 +318,11 @@ void Core::onNetworkManagerAvailableChanged(const bool &available)
     if (!available) {
         qCWarning(dcApplication()) << "Networkmanager is not available any more.";
         m_bluetoothServer->onNetworkManagerAvailableChanged(m_networkManager->available());
+        return;
+    }
+
+    if (m_initRunning) {
+        qCDebug(dcApplication()) << "Init is running";
         return;
     }
 
@@ -305,7 +339,13 @@ void Core::onNetworkManagerAvailableChanged(const bool &available)
     case ModeOffline:
         evaluateNetworkManagerState(m_networkManager->state());
         break;
-    default:
+    case ModeOnce:
+        if (m_networkManager->networkSettings()->connections().isEmpty()) {
+            qCDebug(dcApplication()) << "Start the bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
+            startService();
+        } else {
+            qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
+        }
         break;
     }
 }
@@ -327,6 +367,9 @@ void Core::onNetworkManagerWirelessEnabledChanged(bool enabled)
 void Core::onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state)
 {
     qCDebug(dcApplication()) << state;
+    if (!m_bluetoothServer)
+        return;
+
     m_bluetoothServer->onNetworkManagerStateChanged(state);
     evaluateNetworkManagerState(state);
 }
@@ -339,7 +382,8 @@ void Core::onNetworkManagerWirelessDeviceAdded(WirelessNetworkDevice *wirelessDe
     }
 
     m_wirelessDevice = wirelessDevice;
-    connect(m_wirelessDevice, &WiredNetworkDevice::stateChanged, this, &Core::onWirelessDeviceStateChanged);
+    connect(m_wirelessDevice, &WirelessNetworkDevice::stateChanged, this, &Core::onWirelessDeviceStateChanged);
+    connect(m_wirelessDevice, &WirelessNetworkDevice::modeChanged, this, &Core::onWirelessDeviceModeChanged);
 }
 
 void Core::onNetworkManagerWirelessDeviceRemoved(const QString &interface)
@@ -350,7 +394,7 @@ void Core::onNetworkManagerWirelessDeviceRemoved(const QString &interface)
     }
 
     if (m_wirelessDevice->interface() == interface) {
-        disconnect(m_wirelessDevice, &WiredNetworkDevice::stateChanged, this, &Core::onWirelessDeviceStateChanged);
+        disconnect(m_wirelessDevice, &WirelessNetworkDevice::stateChanged, this, &Core::onWirelessDeviceStateChanged);
         m_wirelessDevice = nullptr;
     }
 }
@@ -359,6 +403,15 @@ void Core::onWirelessDeviceBitRateChanged(int bitRate)
 {
     qCDebug(dcApplication()) << "Wireless device changed bitrate" << bitRate;
     m_bluetoothServer->onWirelessDeviceBitRateChanged(bitRate);
+}
+
+void Core::onWirelessDeviceModeChanged(WirelessNetworkDevice::Mode mode)
+{
+    qCDebug(dcApplication()) << "Wireless device mode" << mode;
+
+    // TODO: check what to do if in ap mode
+
+    m_bluetoothServer->onWirelessDeviceModeChanged(mode);
 }
 
 void Core::onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState state)

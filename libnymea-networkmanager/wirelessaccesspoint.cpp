@@ -43,8 +43,7 @@
 /*! Constructs a new \l{WirelessAccessPoint} with the given dbus \a objectPath and \a parent. */
 WirelessAccessPoint::WirelessAccessPoint(const QDBusObjectPath &objectPath, QObject *parent) :
     QObject(parent),
-    m_objectPath(objectPath),
-    m_securityFlags(0)
+    m_objectPath(objectPath)
 {
     QDBusInterface accessPointInterface(NetworkManagerUtils::networkManagerServiceString(), m_objectPath.path(), NetworkManagerUtils::accessPointInterfaceString(), QDBusConnection::systemBus());
     if(!accessPointInterface.isValid()) {
@@ -56,9 +55,9 @@ WirelessAccessPoint::WirelessAccessPoint(const QDBusObjectPath &objectPath, QObj
     setSsid(accessPointInterface.property("Ssid").toString());
     setMacAddress(accessPointInterface.property("HwAddress").toString());
     setFrequency(accessPointInterface.property("Frequency").toDouble() / 1000);
-    setSignalStrength(accessPointInterface.property("Strength").toUInt());
+    setSignalStrength(accessPointInterface.property("Strength").toInt());
     setSecurityFlags(WirelessAccessPoint::ApSecurityModes(accessPointInterface.property("WpaFlags").toUInt()));
-    setIsProtected((bool)accessPointInterface.property("Flags").toUInt());
+    setIsProtected(static_cast<bool>(accessPointInterface.property("Flags").toUInt()));
 
     QDBusConnection::systemBus().connect(NetworkManagerUtils::networkManagerServiceString(), objectPath.path(), NetworkManagerUtils::accessPointInterfaceString(), "PropertiesChanged", this, SLOT(onPropertiesChanged(QVariantMap)));
 }
@@ -139,7 +138,7 @@ void WirelessAccessPoint::setSecurityFlags(const WirelessAccessPoint::ApSecurity
 void WirelessAccessPoint::onPropertiesChanged(const QVariantMap &properties)
 {
     if (properties.contains("Strength"))
-        setSignalStrength(properties.value("Strength").toUInt());
+        setSignalStrength(properties.value("Strength").toInt());
 
 }
 

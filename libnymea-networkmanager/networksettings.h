@@ -36,7 +36,7 @@ class NetworkSettings : public QObject
 {
     Q_OBJECT
 public:
-    explicit NetworkSettings(QObject *parent = 0);
+    explicit NetworkSettings(QObject *parent = nullptr);
 
     QDBusObjectPath addConnection(const ConnectionSettings &settings);
     QList<NetworkConnection *> connections() const;

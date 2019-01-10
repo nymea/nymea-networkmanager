@@ -30,8 +30,6 @@ NetworkConnection::NetworkConnection(const QDBusObjectPath &objectPath, QObject 
     QObject(parent),
     m_objectPath(objectPath)
 {
-    qDBusRegisterMetaType<ConnectionSettings>();
-
     m_connectionInterface = new QDBusInterface(NetworkManagerUtils::networkManagerServiceString(), m_objectPath.path(), NetworkManagerUtils::connectionsInterfaceString(), QDBusConnection::systemBus(), this);
     if(!m_connectionInterface->isValid()) {
         qCWarning(dcNetworkManager()) << "Invalid connection dbus interface";
@@ -49,6 +47,10 @@ NetworkConnection::NetworkConnection(const QDBusObjectPath &objectPath, QObject 
 
     const QDBusArgument &argument = query.arguments().at(0).value<QDBusArgument>();
     m_connectionSettings = qdbus_cast<ConnectionSettings>(argument);
+
+//    foreach (const QVariant &connectionVariant, m_connectionSettings.values()) {
+//        qCDebug(dcNetworkManager()) << connectionVariant;
+//    }
 }
 
 /*! Delete this \l{NetworkConnection} in the \l{NetworkManager}. */
@@ -58,6 +60,12 @@ void NetworkConnection::deleteConnection()
     if(query.type() != QDBusMessage::ReplyMessage)
         qCWarning(dcNetworkManager()) << query.errorName() << query.errorMessage();
 
+}
+
+void NetworkConnection::registerTypes()
+{
+    qRegisterMetaType<ConnectionSettings>("ConnectionSettings");
+    qDBusRegisterMetaType<ConnectionSettings>();
 }
 
 /*! Returns the dbus object path of this \l{NetworkConnection}. */

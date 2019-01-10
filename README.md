@@ -55,8 +55,6 @@ Note: Command line parameters will have higher priority than entries in the conf
 In order to connect to nymea-networkmanager using bluetooth low energy, once has to perform a bluetooth discovery, filter for all low energy 
 devices and connect to the device with the name `nymea`. The remote address type for connecting to `nymea-networkmanager` is `public`.
 
-## Behaviour
-
 
 ## Notifications
 
@@ -81,20 +79,20 @@ enabling and `0x0000` for disabling to the descriptor `0x2902` of the correspond
 > **W** = Write; **R** = Read; **N** = Notify
 
 
-#### **S**: Generic Access
+### **S**: Generic Access
 
 > Default service for Bluetooth LE GATT devices. More information can be 
 found [here](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.generic_access.xml).
 
-#### **S**: Generic Attribute
+### **S**: Generic Attribute
 
 > Default service for Bluetooth LE GATT devices. More information can be found [here](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.generic_attribute.xml).
 
-#### **S**: Device Information
+### **S**: Device Information
 
 > Default service for Bluetooth LE GATT devices.  More information can be found [here](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.device_information.xml).
 
-#### **S**: Wireless service `e081fec0-f757-4449-b9c9-bfa83133f7fc`
+### **S**: Wireless service `e081fec0-f757-4449-b9c9-bfa83133f7fc`
 
 The *Wireless Service* allows a client to configure and monitor a wireless network connection. The connection can be controlled with the *Wireless commander* characteristic. Each command sent will generate a respone on the *Comander response* characteristic containing the error code for the command. The *Wireless connection status* characteristic informs the client about the current connection status of the wireless device.
 
@@ -105,6 +103,7 @@ The *Wireless Service* allows a client to configure and monitor a wireless netwo
 | Wireless commander         | `e081fec1-f757-4449-b9c9-bfa83133f7fc` | **W**  | Controll what the wifi manager should do.
 | Commander response         | `e081fec2-f757-4449-b9c9-bfa83133f7fc` | **N**  | This characteristic will be used to inform about the command result (error reporting).
 | Wireless connection status | `e081fec3-f757-4449-b9c9-bfa83133f7fc` | **RN** | Informs about the current wireless connection status.
+| Wireless mode              | `e081fec4-f757-4449-b9c9-bfa83133f7fc` | **RN** | Informs about the current mode of the wireless device.
 
 
 **Characteristic details**
@@ -151,14 +150,15 @@ In following example you can find the basic structure of a command and a respons
 
 #### Methods
 
-| Value  | Name           | Description
-| ------ | -------------- | ----------------------------------------------------
-| `0`    | GetNetworks    | Get the current wifi network list on the "Wireless data stream".
-| `1`    | Connect        | Connect to the network with the given ssid and password in **C** `e081fec4` and **C** `e081fec5`. If the network is open, set the password characteristic to an empty string.
-| `2`    | ConnectHidden  | Connect to the hidden network using the given ssid and password in **C** `e081fec4` and **C** `e081fec5`.
-| `3`    | Disconnect     | Disconnect from current wireless network.
-| `4`    | Scan           | Perform a wireless accesspoint scan.
-| `5`    | GetConnection  | Get the current connection information on the "Wireless data stream"
+| Value  | Name              | Description
+| ------ | ----------------- | ----------------------------------------------------
+| `0`    | GetNetworks       | Get the current wifi network list on the "Wireless data stream".
+| `1`    | Connect           | Connect to the network with the given ssid and password in **C** `e081fec4` and **C** `e081fec5`. If the network is open, set the password characteristic to an empty string.
+| `2`    | ConnectHidden     | Connect to the hidden network using the given ssid and password in **C** `e081fec4` and **C** `e081fec5`.
+| `3`    | Disconnect        | Disconnect from current wireless network.
+| `4`    | Scan              | Perform a wireless accesspoint scan.
+| `5`    | GetConnection     | Get the current connection information on the "Wireless data stream"
+| `6`    | StartAccessPoint  | Start a wireless access point.
 
 
 ##### - GetNetworks (0)
@@ -192,9 +192,8 @@ In following example you can find the basic structure of a command and a respons
                   {
                       "c": 1,                    // Command: Connect
                       "p": {
-                          "e": "Wifi SSID"       // The SSID of the wifi access point you want to connect to
+                          "e": "Wifi SSID",      // The SSID of the wifi access point you want to connect to
                           "p": "Wifi password"   // The password of the access point you want to connect to
-
                       }
                   }
 
@@ -213,7 +212,7 @@ In following example you can find the basic structure of a command and a respons
                   {
                       "c": 2,                    // Command: ConnectHidden
                       "p": {
-                          "e": "Wifi SSID"       // The SSID of the wifi access point you want to connect to
+                          "e": "Wifi SSID",      // The SSID of the wifi access point you want to connect to
                           "p": "Wifi password"   // The password of the access point you want to connect to
 
                       }
@@ -282,6 +281,26 @@ In following example you can find the basic structure of a command and a respons
                   }
 
 
+##### - StartAccessPoint (6)
+
+- Request
+
+                  {
+                      "c": 6,                    // Command: StartAccessPoint
+                      "p": {
+                          "e": "Access Point SSID",               // The SSID of the wifi access point you want to create
+                          "p": "Wireless access point password"   // The password of the access point you want to create
+                      }
+                  }
+
+
+- Response
+
+                  {
+                      "c": 6,               // Integer: Command: describing the method called
+                      "r": 0                // Integer: Response error code. See list of response error codes.
+                  }
+
 
 
 
@@ -318,7 +337,21 @@ In following example you can find the basic structure of a command and a respons
 | `0x0C` | Failed       | The device failed to connect to the requested network and is cleaning up the connection request.
 
 
-#### **S**: Network service `ef6d6610-b8af-49e0-9eca-ab343513641c`
+- **C**: *Wireless mode* (RN) `e081fec4-f757-4449-b9c9-bfa83133f7fc`
+
+    - *Description*: This characteristic represents the current state of the wireless adapter.
+    - *Range*: 1 Byte, Hex value
+    - *Possible values*:
+
+| Value  | Name            | Description
+| ------ | --------------- | ----------------------------------------------------
+| `0x00` | Unknown         | The device mode is unknown.
+| `0x01` | Adhoc           | For both devices and access point objects, indicates the object is part of an Ad-Hoc 802.11 network without a central coordinating access point.
+| `0x02` | Infrastructure  | The device or access point is in infrastructure mode. For devices, this indicates the device is an 802.11 client/station.
+| `0x03` | AccessPoint     | The device is an access point/hotspot.
+
+
+### **S**: Network service `ef6d6610-b8af-49e0-9eca-ab343513641c`
 
 This service allows to monitor and configure the `network-manager` daemon running on the system.
 

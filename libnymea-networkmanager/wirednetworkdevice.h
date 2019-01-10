@@ -31,7 +31,7 @@ class WiredNetworkDevice : public NetworkDevice
 {
     Q_OBJECT
 public:
-    explicit WiredNetworkDevice(const QDBusObjectPath &objectPath, QObject *parent = 0);
+    explicit WiredNetworkDevice(const QDBusObjectPath &objectPath, QObject *parent = nullptr);
 
     QString macAddress() const;
     int bitRate() const;

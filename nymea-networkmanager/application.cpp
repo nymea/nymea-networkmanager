@@ -48,6 +48,7 @@ static void catchUnixSignals(const std::vector<int>& quitSignals, const std::vec
             exit(EXIT_FAILURE);
         }
         default:
+            qCDebug(dcApplication()) << "Cought unhandled signal" << sig;
             break;
         }
 

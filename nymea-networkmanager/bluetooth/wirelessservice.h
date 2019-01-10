@@ -45,7 +45,8 @@ public:
         WirelessServiceCommandConnectHidden         = 0x02,
         WirelessServiceCommandDisconnect            = 0x03,
         WirelessServiceCommandScan                  = 0x04,
-        WirelessServiceCommandGetCurrentConnection  = 0x05
+        WirelessServiceCommandGetCurrentConnection  = 0x05,
+        WirelessServiceCommandStartAccessPoint      = 0x06
     };
     Q_ENUM(WirelessServiceCommand)
 
@@ -61,7 +62,7 @@ public:
     };
     Q_ENUM(WirelessServiceResponse)
 
-    explicit WirelessService(QLowEnergyService *service, QObject *parent = 0);
+    explicit WirelessService(QLowEnergyService *service, QObject *parent = nullptr);
     ~WirelessService();
 
     QLowEnergyService *service();
@@ -77,7 +78,8 @@ private:
     WirelessServiceResponse checkWirelessErrors();
 
     // Note: static to be available in serviceData
-    static QByteArray getWirelessNetworkDeviceState(const NetworkDevice::NetworkDeviceState &state);
+    static QByteArray getWirelessNetworkDeviceState(NetworkDevice::NetworkDeviceState state);
+    static QByteArray getWirelessMode(WirelessNetworkDevice::Mode mode);
 
     void streamData(const QVariantMap &responseMap);
 
@@ -90,7 +92,7 @@ private:
     void commandDisconnect(const QVariantMap &request);
     void commandScan(const QVariantMap &request);
     void commandGetCurrentConnection(const QVariantMap &request);
-
+    void commandStartAccessPoint(const QVariantMap &request);
 
 private slots:
     // Service
@@ -106,8 +108,9 @@ private slots:
 
 public slots:
     // Wireless network device
-    void onWirelessDeviceBitRateChanged(const int &bitRate);
-    void onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState &state);
+    void onWirelessDeviceBitRateChanged(int bitRate);
+    void onWirelessDeviceStateChanged(NetworkDevice::NetworkDeviceState state);
+    void onWirelessModeChanged(WirelessNetworkDevice::Mode mode);
 };
 
 #endif // WIRELESSSERVICE_H

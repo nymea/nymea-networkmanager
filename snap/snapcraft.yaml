@@ -10,7 +10,7 @@ description: |
   is 'BT WLAN setup'.
 
 grade: stable
-confinement: classic
+confinement: strict
 
 apps:
   nymea-networkmanager:

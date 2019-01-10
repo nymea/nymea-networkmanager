@@ -147,7 +147,7 @@ public:
     };
     Q_ENUM(NetworkDeviceType)
 
-    explicit NetworkDevice(const QDBusObjectPath &objectPath, QObject *parent = 0);
+    explicit NetworkDevice(const QDBusObjectPath &objectPath, QObject *parent = nullptr);
 
     QDBusObjectPath objectPath() const;
 

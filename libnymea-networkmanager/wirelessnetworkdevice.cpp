@@ -40,7 +40,7 @@
 /*! Constructs a new \l{WirelessNetworkDevice} with the given dbus \a objectPath and \a parent. */
 WirelessNetworkDevice::WirelessNetworkDevice(const QDBusObjectPath &objectPath, QObject *parent) :
     NetworkDevice(objectPath, parent),
-    m_activeAccessPoint(Q_NULLPTR)
+    m_activeAccessPoint(nullptr)
 {
     QDBusConnection systemBus = QDBusConnection::systemBus();
     if (!systemBus.isConnected()) {
@@ -61,6 +61,7 @@ WirelessNetworkDevice::WirelessNetworkDevice(const QDBusObjectPath &objectPath, 
     readAccessPoints();
 
     setMacAddress(m_wirelessInterface->property("HwAddress").toString());
+    setMode(static_cast<Mode>(m_wirelessInterface->property("Mode").toUInt()));
     setBitrate(m_wirelessInterface->property("Bitrate").toInt());
     setActiveAccessPoint(qdbus_cast<QDBusObjectPath>(m_wirelessInterface->property("ActiveAccessPoint")));
 }
@@ -75,6 +76,11 @@ QString WirelessNetworkDevice::macAddress() const
 int WirelessNetworkDevice::bitRate() const
 {
     return m_bitRate;
+}
+
+WirelessNetworkDevice::Mode WirelessNetworkDevice::mode() const
+{
+    return m_mode;
 }
 
 /*! Returns the current active \l{WirelessAccessPoint} of this \l{WirelessNetworkDevice}. */
@@ -100,17 +106,17 @@ QList<WirelessAccessPoint *> WirelessNetworkDevice::accessPoints()
     return m_accessPointsTable.values();
 }
 
-/*! Returns the \l{WirelessAccessPoint} with the given \a ssid. If the \l{WirelessAccessPoint} could not be found, return Q_NULLPTR. */
+/*! Returns the \l{WirelessAccessPoint} with the given \a ssid. If the \l{WirelessAccessPoint} could not be found, return nullptr. */
 WirelessAccessPoint *WirelessNetworkDevice::getAccessPoint(const QString &ssid)
 {
     foreach (WirelessAccessPoint *accessPoint, m_accessPointsTable.values()) {
         if (accessPoint->ssid() == ssid)
             return accessPoint;
     }
-    return Q_NULLPTR;
+    return nullptr;
 }
 
-/*! Returns the \l{WirelessAccessPoint} with the given \a objectPath. If the \l{WirelessAccessPoint} could not be found, return Q_NULLPTR. */
+/*! Returns the \l{WirelessAccessPoint} with the given \a objectPath. If the \l{WirelessAccessPoint} could not be found, return nullptr. */
 WirelessAccessPoint *WirelessNetworkDevice::getAccessPoint(const QDBusObjectPath &objectPath)
 {
     return m_accessPointsTable.value(objectPath);
@@ -141,10 +147,20 @@ void WirelessNetworkDevice::setMacAddress(const QString &macAddress)
     m_macAddress = macAddress;
 }
 
-void WirelessNetworkDevice::setBitrate(const int &bitRate)
+void WirelessNetworkDevice::setMode(WirelessNetworkDevice::Mode mode)
+{
+    if (m_mode == mode)
+        return;
+
+    m_mode = mode;
+    emit modeChanged(m_mode);
+}
+
+void WirelessNetworkDevice::setBitrate(int bitRate)
 {
     if (m_bitRate != bitRate / 1000) {
         m_bitRate = bitRate / 1000;
+        emit bitRateChanged(m_bitRate);
         emit deviceChanged();
     }
 }
@@ -162,7 +178,7 @@ void WirelessNetworkDevice::setActiveAccessPoint(const QDBusObjectPath &activeAc
             // Update the device when the signalstrength changed
             connect(m_activeAccessPoint, &WirelessAccessPoint::signalStrengthChanged, this, &WirelessNetworkDevice::deviceChanged);
         } else {
-            m_activeAccessPoint = Q_NULLPTR;
+            m_activeAccessPoint = nullptr;
         }
         emit deviceChanged();
     }
@@ -193,7 +209,7 @@ void WirelessNetworkDevice::accessPointRemoved(const QDBusObjectPath &objectPath
 
     WirelessAccessPoint *accessPoint = m_accessPointsTable.take(objectPath);
     if (accessPoint == m_activeAccessPoint)
-        m_activeAccessPoint = Q_NULLPTR;
+        m_activeAccessPoint = nullptr;
 
     //qCDebug(dcNetworkManager()) << "WirelessNetworkDevice: [-]" << accessPoint;
     accessPoint->deleteLater();
@@ -208,6 +224,10 @@ void WirelessNetworkDevice::propertiesChanged(const QVariantMap &properties)
 
     if (properties.contains("ActiveAccessPoint"))
         setActiveAccessPoint(qdbus_cast<QDBusObjectPath>(properties.value("ActiveAccessPoint")));
+
+    if (properties.contains("Mode"))
+        setMode(static_cast<Mode>(m_wirelessInterface->property("Mode").toUInt()));
+
 }
 
 /*! Writes the given \a device to the given to \a debug. \sa WirelessNetworkDevice, */
@@ -215,6 +235,7 @@ QDebug operator<<(QDebug debug, WirelessNetworkDevice *device)
 {
     debug.nospace() << "WirelessNetworkDevice(" << device->interface() << ", ";
     debug.nospace() << device->macAddress() <<  ", ";
+    debug.nospace() << device->mode() <<  ", ";
     debug.nospace() << device->bitRate() <<  " [Mb/s], ";
     debug.nospace() << device->deviceStateString() <<  ") ";
     return debug;
