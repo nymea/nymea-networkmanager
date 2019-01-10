@@ -8,7 +8,7 @@ if the system is currently not connected to any network. Once the system is conn
 First you have to install build dependencies:
 
     $ sudo apt update
-    $ sudo apt install qtbase5-dev qtbase5-dev-tools libqt5bluetooth5 qtconnectivity5-dev git
+    $ sudo apt install qt5-default qtbase5-dev qtbase5-dev-tools libqt5bluetooth5 qtconnectivity5-dev git
 
 Clone the source code and change into the source directory
 
