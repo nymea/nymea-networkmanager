@@ -3,6 +3,33 @@
 This daemon allows to set up the wireless network using a bluetooth LE connection. The daemon will automatically start a bluetooth low energy server 
 if the system is currently not connected to any network. Once the system is connected, the daemon will shutdown the bluetooth server. 
 
+# Build
+
+First you have to install build dependencies:
+
+    $ sudo apt update
+    $ sudo apt install qtbase5-dev qtbase5-dev-tools libqt5bluetooth5 qtconnectivity5-dev git
+
+Clone the source code and change into the source directory
+
+    $ git clone https://github.com/guh/nymea-networkmanager.git
+    $ cd nymea-networkmanager
+
+Create the build directory
+
+    $ mkdir build
+    $ cd build
+
+And finally build the daemon and library
+
+    $ qmake ..
+    $ make -j$(nproc)
+
+You can run the daemon directly with following command
+
+    $ sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/libnymea-networkmanager/ ./nymea-networkmanager/nymea-networkmanager
+
+
 # Config file
 
 nymea-networkmanager will search for a config file in the following locations (in this order):
