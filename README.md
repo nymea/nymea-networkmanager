@@ -40,13 +40,13 @@ In order to build a debian package you can do following:
 
 nymea-networkmanager will search for a config file in the following locations (in this order):
 
-~/.config/nymea/nymea-networkmanager.conf
-/etc/nymea/nymea-networkmanager.conf
+    ~/.config/nymea/nymea-networkmanager.conf
+    /etc/nymea/nymea-networkmanager.conf
 
 If such a config file is found, it reads values from there. There is a example config in
 this repository and it will be installed to /etc/nymea-networkmanager.conf with the dpkg package.
 
-Note: Command line parameters will have higher priority than entries in the configuration file.
+> Note: Command line parameters will have higher priority than entries in the configuration file.
 
 # Command line parameters
 
