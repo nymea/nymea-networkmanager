@@ -61,7 +61,7 @@ this repository and it will be installed to /etc/nymea-networkmanager.conf with 
 
 # Command line parameters
 
-    $ nymea-network-manager --help
+    $ nymea-networkmanager --help
     Usage:nymea-networkmanager [options]
     
     This daemon allows to configure a wifi network using a bluetooth low energy connection.
