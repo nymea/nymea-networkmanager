@@ -73,101 +73,101 @@ bool BluetoothServer::connected() const
     return m_connected;
 }
 
-QLowEnergyServiceData BluetoothServer::deviceInformationServiceData()
-{
-    QLowEnergyServiceData serviceData;
-    serviceData.setType(QLowEnergyServiceData::ServiceTypePrimary);
-    serviceData.setUuid(QBluetoothUuid::DeviceInformation);
+//QLowEnergyServiceData BluetoothServer::deviceInformationServiceData()
+//{
+//    QLowEnergyServiceData serviceData;
+//    serviceData.setType(QLowEnergyServiceData::ServiceTypePrimary);
+//    serviceData.setUuid(QBluetoothUuid::DeviceInformation);
 
-    // Model number string 0x2a24
-    QLowEnergyCharacteristicData modelNumberCharData;
-    modelNumberCharData.setUuid(QBluetoothUuid::ModelNumberString);
-    modelNumberCharData.setValue(m_machineId.toUtf8());
-    modelNumberCharData.setProperties(QLowEnergyCharacteristic::Read);
-    serviceData.addCharacteristic(modelNumberCharData);
+//    // Model number string 0x2a24
+//    QLowEnergyCharacteristicData modelNumberCharData;
+//    modelNumberCharData.setUuid(QBluetoothUuid::ModelNumberString);
+//    modelNumberCharData.setValue(m_machineId.toUtf8());
+//    modelNumberCharData.setProperties(QLowEnergyCharacteristic::Read);
+//    serviceData.addCharacteristic(modelNumberCharData);
 
-    // Firmware revision string 0x2a26
-    QLowEnergyCharacteristicData firmwareRevisionCharData;
-    firmwareRevisionCharData.setUuid(QBluetoothUuid::FirmwareRevisionString);
-    firmwareRevisionCharData.setValue(QString("1.0.0").toUtf8());
-    firmwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
-    serviceData.addCharacteristic(firmwareRevisionCharData);
+//    // Firmware revision string 0x2a26
+//    QLowEnergyCharacteristicData firmwareRevisionCharData;
+//    firmwareRevisionCharData.setUuid(QBluetoothUuid::FirmwareRevisionString);
+//    firmwareRevisionCharData.setValue(QString("1.0.0").toUtf8());
+//    firmwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
+//    serviceData.addCharacteristic(firmwareRevisionCharData);
 
-    // Hardware revision string 0x2a27
-    QLowEnergyCharacteristicData hardwareRevisionCharData;
-    hardwareRevisionCharData.setUuid(QBluetoothUuid::HardwareRevisionString);
-    hardwareRevisionCharData.setValue(QString("1.0.0").toUtf8());
-    hardwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
-    serviceData.addCharacteristic(hardwareRevisionCharData);
+//    // Hardware revision string 0x2a27
+//    QLowEnergyCharacteristicData hardwareRevisionCharData;
+//    hardwareRevisionCharData.setUuid(QBluetoothUuid::HardwareRevisionString);
+//    hardwareRevisionCharData.setValue(QString("1.0.0").toUtf8());
+//    hardwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
+//    serviceData.addCharacteristic(hardwareRevisionCharData);
 
-    // Software revision string 0x2a28
-    QLowEnergyCharacteristicData softwareRevisionCharData;
-    softwareRevisionCharData.setUuid(QBluetoothUuid::SoftwareRevisionString);
-    softwareRevisionCharData.setValue(QCoreApplication::applicationVersion().toUtf8());
-    softwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
-    serviceData.addCharacteristic(softwareRevisionCharData);
+//    // Software revision string 0x2a28
+//    QLowEnergyCharacteristicData softwareRevisionCharData;
+//    softwareRevisionCharData.setUuid(QBluetoothUuid::SoftwareRevisionString);
+//    softwareRevisionCharData.setValue(QCoreApplication::applicationVersion().toUtf8());
+//    softwareRevisionCharData.setProperties(QLowEnergyCharacteristic::Read);
+//    serviceData.addCharacteristic(softwareRevisionCharData);
 
-    // Manufacturer name string 0x2a29
-    QLowEnergyCharacteristicData manufacturerNameCharData;
-    manufacturerNameCharData.setUuid(QBluetoothUuid::ManufacturerNameString);
-    manufacturerNameCharData.setValue(QString("guh GmbH").toUtf8());
-    manufacturerNameCharData.setProperties(QLowEnergyCharacteristic::Read);
-    serviceData.addCharacteristic(manufacturerNameCharData);
+//    // Manufacturer name string 0x2a29
+//    QLowEnergyCharacteristicData manufacturerNameCharData;
+//    manufacturerNameCharData.setUuid(QBluetoothUuid::ManufacturerNameString);
+//    manufacturerNameCharData.setValue(QString("guh GmbH").toUtf8());
+//    manufacturerNameCharData.setProperties(QLowEnergyCharacteristic::Read);
+//    serviceData.addCharacteristic(manufacturerNameCharData);
 
-    return serviceData;
-}
+//    return serviceData;
+//}
 
-QLowEnergyServiceData BluetoothServer::genericAccessServiceData()
-{
-    QLowEnergyServiceData serviceData;
-    serviceData.setType(QLowEnergyServiceData::ServiceTypePrimary);
-    serviceData.setUuid(QBluetoothUuid::GenericAccess);
+//QLowEnergyServiceData BluetoothServer::genericAccessServiceData()
+//{
+//    QLowEnergyServiceData serviceData;
+//    serviceData.setType(QLowEnergyServiceData::ServiceTypePrimary);
+//    serviceData.setUuid(QBluetoothUuid::GenericAccess);
 
-    // Device name 0x2a00
-    QLowEnergyCharacteristicData nameCharData;
-    nameCharData.setUuid(QBluetoothUuid::DeviceName);
-    nameCharData.setValue(QCoreApplication::applicationName().toUtf8());
-    nameCharData.setProperties(QLowEnergyCharacteristic::Read);
-    serviceData.addCharacteristic(nameCharData);
+//    // Device name 0x2a00
+//    QLowEnergyCharacteristicData nameCharData;
+//    nameCharData.setUuid(QBluetoothUuid::DeviceName);
+//    nameCharData.setValue(QCoreApplication::applicationName().toUtf8());
+//    nameCharData.setProperties(QLowEnergyCharacteristic::Read);
+//    serviceData.addCharacteristic(nameCharData);
 
-    // Appearance 0x2a01
-    QLowEnergyCharacteristicData appearanceCharData;
-    appearanceCharData.setUuid(QBluetoothUuid::Appearance);
-    appearanceCharData.setValue(QByteArray(4, 0));
-    appearanceCharData.setProperties(QLowEnergyCharacteristic::Read);
-    serviceData.addCharacteristic(appearanceCharData);
+//    // Appearance 0x2a01
+//    QLowEnergyCharacteristicData appearanceCharData;
+//    appearanceCharData.setUuid(QBluetoothUuid::Appearance);
+//    appearanceCharData.setValue(QByteArray(4, 0));
+//    appearanceCharData.setProperties(QLowEnergyCharacteristic::Read);
+//    serviceData.addCharacteristic(appearanceCharData);
 
-    // Peripheral Privacy Flag 0x2a02
-    QLowEnergyCharacteristicData privacyFlagCharData;
-    privacyFlagCharData.setUuid(QBluetoothUuid::PeripheralPrivacyFlag);
-    privacyFlagCharData.setValue(QByteArray(2, 0));
-    privacyFlagCharData.setProperties(QLowEnergyCharacteristic::Read | QLowEnergyCharacteristic::Write);
-    serviceData.addCharacteristic(privacyFlagCharData);
+//    // Peripheral Privacy Flag 0x2a02
+//    QLowEnergyCharacteristicData privacyFlagCharData;
+//    privacyFlagCharData.setUuid(QBluetoothUuid::PeripheralPrivacyFlag);
+//    privacyFlagCharData.setValue(QByteArray(2, 0));
+//    privacyFlagCharData.setProperties(QLowEnergyCharacteristic::Read | QLowEnergyCharacteristic::Write);
+//    serviceData.addCharacteristic(privacyFlagCharData);
 
-    // Reconnection Address 0x2a03
-    QLowEnergyCharacteristicData reconnectionAddressCharData;
-    reconnectionAddressCharData.setUuid(QBluetoothUuid::ReconnectionAddress);
-    reconnectionAddressCharData.setValue(QByteArray());
-    reconnectionAddressCharData.setProperties(QLowEnergyCharacteristic::Write);
-    serviceData.addCharacteristic(reconnectionAddressCharData);
+//    // Reconnection Address 0x2a03
+//    QLowEnergyCharacteristicData reconnectionAddressCharData;
+//    reconnectionAddressCharData.setUuid(QBluetoothUuid::ReconnectionAddress);
+//    reconnectionAddressCharData.setValue(QByteArray());
+//    reconnectionAddressCharData.setProperties(QLowEnergyCharacteristic::Write);
+//    serviceData.addCharacteristic(reconnectionAddressCharData);
 
-    return serviceData;
-}
+//    return serviceData;
+//}
 
-QLowEnergyServiceData BluetoothServer::genericAttributeServiceData()
-{
-    QLowEnergyServiceData serviceData;
-    serviceData.setType(QLowEnergyServiceData::ServiceTypePrimary);
-    serviceData.setUuid(QBluetoothUuid::GenericAttribute);
+//QLowEnergyServiceData BluetoothServer::genericAttributeServiceData()
+//{
+//    QLowEnergyServiceData serviceData;
+//    serviceData.setType(QLowEnergyServiceData::ServiceTypePrimary);
+//    serviceData.setUuid(QBluetoothUuid::GenericAttribute);
 
-    QLowEnergyCharacteristicData charData;
-    charData.setUuid(QBluetoothUuid::ServiceChanged);
-    charData.setProperties(QLowEnergyCharacteristic::Indicate);
+//    QLowEnergyCharacteristicData charData;
+//    charData.setUuid(QBluetoothUuid::ServiceChanged);
+//    charData.setProperties(QLowEnergyCharacteristic::Indicate);
 
-    serviceData.addCharacteristic(charData);
+//    serviceData.addCharacteristic(charData);
 
-    return serviceData;
-}
+//    return serviceData;
+//}
 
 void BluetoothServer::setRunning(bool running)
 {
@@ -381,10 +381,10 @@ void BluetoothServer::start()
     connect(m_controller, &QLowEnergyController::disconnected, this, &BluetoothServer::onDisconnected);
     connect(m_controller, SIGNAL(error(QLowEnergyController::Error)), this, SLOT(onError(QLowEnergyController::Error)));
 
-    // Note: https://www.bluetooth.com/specifications/gatt/services
-    m_deviceInfoService = m_controller->addService(deviceInformationServiceData(), m_controller);
-    m_genericAccessService = m_controller->addService(genericAccessServiceData(), m_controller);
-    m_genericAttributeService = m_controller->addService(genericAttributeServiceData(), m_controller);
+//    // Note: https://www.bluetooth.com/specifications/gatt/services
+//    m_deviceInfoService = m_controller->addService(deviceInformationServiceData(), m_controller);
+//    m_genericAccessService = m_controller->addService(genericAccessServiceData(), m_controller);
+//    m_genericAttributeService = m_controller->addService(genericAttributeServiceData(), m_controller);
 
     // Create services
     m_networkService = new NetworkService(m_controller->addService(NetworkService::serviceData(), m_controller), m_controller);    

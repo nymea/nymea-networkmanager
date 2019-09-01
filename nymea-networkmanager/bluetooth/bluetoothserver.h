@@ -29,7 +29,7 @@
 #include <QLowEnergyService>
 #include <QBluetoothLocalDevice>
 #include <QLowEnergyController>
-#include <QLowEnergyServiceData>
+//#include <QLowEnergyServiceData>
 #include <QLowEnergyCharacteristic>
 #include <QLowEnergyDescriptorData>
 #include <QLowEnergyAdvertisingData>
@@ -65,9 +65,9 @@ private:
     QBluetoothLocalDevice *m_localDevice = nullptr;
     QLowEnergyController *m_controller = nullptr;
 
-    QLowEnergyService *m_deviceInfoService = nullptr;
-    QLowEnergyService *m_genericAccessService = nullptr;
-    QLowEnergyService *m_genericAttributeService = nullptr;
+//    QLowEnergyService *m_deviceInfoService = nullptr;
+//    QLowEnergyService *m_genericAccessService = nullptr;
+//    QLowEnergyService *m_genericAttributeService = nullptr;
 
     NetworkService *m_networkService = nullptr;
     WirelessService *m_wirelessService = nullptr;
@@ -75,9 +75,9 @@ private:
     bool m_running = false;
     bool m_connected = false;
 
-    QLowEnergyServiceData deviceInformationServiceData();
-    QLowEnergyServiceData genericAccessServiceData();
-    QLowEnergyServiceData genericAttributeServiceData();
+//    QLowEnergyServiceData deviceInformationServiceData();
+//    QLowEnergyServiceData genericAccessServiceData();
+//    QLowEnergyServiceData genericAttributeServiceData();
 
     void setRunning(bool running);
     void setConnected(bool connected);
