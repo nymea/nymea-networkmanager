@@ -8,7 +8,8 @@ Build-Depends: debhelper (>= 9.0.0),
   qtbase5-dev,
   qtbase5-dev-tools,
   libqt5bluetooth5,
-  qtconnectivity5-dev
+  qtconnectivity5-dev,
+  libnymea-networkmanager-dev
 Standards-Version: 3.9.7
 
 Package: nymea-networkmanager
@@ -17,32 +18,7 @@ Depends: ${misc:Depends},
   libqt5network5,
   libqt5bluetooth5,
   network-manager,
-  libnymea-networkmanager (= ${binary:Version})
+  libnymea-networkmanager
 Description: Daemon for wireless configuration using bluetooth LE.
   This daemon allows to configure a wireless network using a bluetooth
   low energy gatt server. The tool is written in Qt 5.
-
-Package: libnymea-networkmanager
-Section: libs
-Architecture: any
-Depends: ${misc:Depends},
-  libqt5network5
-Description: Qt 5 based library for the network-manager DBus API.
-  Qt 5 based library for the network-manager DBus API.
-
-Package: libnymea-networkmanager-dev
-Section: libdevel
-Architecture: any
-Depends: ${misc:Depends},
-  libnymea-networkmanager (= ${binary:Version})
-Description: Qt 5 based library for the network-manager DBus API - development files
-  Development files for Qt 5 based network-manager DBus API.
-
-Package: libnymea-networkmanager-dbg
-Priority: extra
-Architecture: any
-Section: debug
-Depends: ${misc:Depends},
-  libnymea-networkmanager (= ${binary:Version})
-Description: Qt 5 based library for the network-manager DBus API - debug symbols
-  Debug Symbols for Qt 5 based network-manager DBus API.
