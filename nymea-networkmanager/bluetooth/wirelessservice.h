@@ -27,8 +27,8 @@
 #include <QLowEnergyService>
 #include <QLowEnergyServiceData>
 
-#include "wirelessnetworkdevice.h"
-#include "wirelessaccesspoint.h"
+#include "libnymea-networkmanager/wirelessaccesspoint.h"
+#include "libnymea-networkmanager/wirelessnetworkdevice.h"
 
 class WirelessService : public QObject
 {

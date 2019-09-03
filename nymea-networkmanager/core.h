@@ -24,9 +24,9 @@
 
 #include <QObject>
 
-#include "networkmanager.h"
 #include "nymeadservice.h"
 #include "bluetooth/bluetoothserver.h"
+#include "libnymea-networkmanager/networkmanager.h"
 
 class Core : public QObject
 {

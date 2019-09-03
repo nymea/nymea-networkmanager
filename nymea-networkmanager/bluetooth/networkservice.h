@@ -26,7 +26,7 @@
 #include <QLowEnergyService>
 #include <QLowEnergyServiceData>
 
-#include "networkmanager.h"
+#include "libnymea-networkmanager/networkmanager.h"
 
 class NetworkService : public QObject
 {
