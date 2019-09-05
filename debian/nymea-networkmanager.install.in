@@ -1,3 +1,0 @@
-usr/bin/nymea-networkmanager
-nymea-networkmanager.service /lib/systemd/system/
-nymea-networkmanager.conf /etc/nymea/
