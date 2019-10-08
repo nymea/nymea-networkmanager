@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     Application application(argc, argv);
     application.setApplicationName("nymea-networkmanager");
     application.setOrganizationName("nymea");
-    application.setApplicationVersion("0.3.2");
+    application.setApplicationVersion(VERSION_STRING);
 
     // Command line parser
     QCommandLineParser parser;

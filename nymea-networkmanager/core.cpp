@@ -106,7 +106,7 @@ void Core::run()
     }
 
     // Note: give network-manager more time to start and get online status
-    QTimer::singleShot(5000, this, &Core::postRun);
+    QTimer::singleShot(3000, this, &Core::postRun);
 }
 
 Core::Core(QObject *parent) :
@@ -117,6 +117,7 @@ Core::Core(QObject *parent) :
     connect(m_networkManager, &NetworkManager::stateChanged, this, &Core::onNetworkManagerStateChanged);
 
     m_bluetoothServer = new BluetoothServer(m_networkManager);
+
     connect(m_bluetoothServer, &BluetoothServer::runningChanged, this, &Core::onBluetoothServerRunningChanged);
     connect(m_bluetoothServer, &BluetoothServer::connectedChanged, this, &Core::onBluetoothServerConnectedChanged);
 
@@ -179,13 +180,14 @@ void Core::evaluateNetworkManagerState(NetworkManager::NetworkManagerState state
         startService();
         break;
     default:
-        qCDebug(dcApplication()) << "Ignoring networkmanager state" << state;
+        qCDebug(dcApplication()) << "Ignoring" << state;
         break;
     }
 }
 
 void Core::startService()
 {
+    qCDebug(dcApplication()) << "Start the service...";
     if (!m_networkManager->available()) {
         qCWarning(dcApplication()) << "Could not start services. There is no network manager available.";
         return;
@@ -197,18 +199,14 @@ void Core::startService()
         return;
     }
 
-    qCDebug(dcApplication()) << "Start service";
-
     // Disable bluetooth on nymea in order to not crash with client connections
     m_nymeaService->enableBluetooth(false);
 
     // Start the bluetooth server for this wireless device
-    qCDebug(dcApplication()) << "Start bluetooth service";
     m_bluetoothServer->setAdvertiseName(m_advertiseName);
     m_bluetoothServer->setModelName(m_platformName);
     m_bluetoothServer->setSoftwareVersion(VERSION_STRING);
-
-    QTimer::singleShot(5000, m_bluetoothServer, &BluetoothServer::start);
+    m_bluetoothServer->start();
 }
 
 void Core::stopService()
@@ -262,28 +260,31 @@ void Core::onBluetoothServerRunningChanged(bool running)
     qCDebug(dcApplication()) << "Bluetooth server" << (running ? "started" : "stopped");
 
     if (!running) {
-        // Enable bluetooth on nymea
         m_advertisingTimer->stop();
 
         switch (m_mode) {
         case ModeAlways:
             qCDebug(dcApplication()) << "Restart the bluetooth service because of \"always\" mode.";
-            // Give some grace periode for bluez to clean up
-            QTimer::singleShot(2000, this, &Core::startService);
+            // Give some grace periode for bluez to clean up and restart the service again
+            QTimer::singleShot(3000, this, &Core::startService);
             break;
         case ModeStart:
+            // Enable bluetooth on nymea
             m_nymeaService->enableBluetooth(true);
+            // We are done here. The bluetooth server was already running
             break;
         case ModeOffline:
+            // Enable bluetooth on nymea
             m_nymeaService->enableBluetooth(true);
             evaluateNetworkManagerState(m_networkManager->state());
             break;
         case ModeOnce:
-            m_nymeaService->enableBluetooth(true);
             if (m_networkManager->networkSettings()->connections().isEmpty()) {
                 qCDebug(dcApplication()) << "Start the bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
                 startService();
             } else {
+                // Enable bluetooth on nymea
+                m_nymeaService->enableBluetooth(true);
                 qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
             }
             break;
@@ -310,7 +311,7 @@ void Core::onNetworkManagerAvailableChanged(bool available)
     }
 
     if (m_initRunning) {
-        qCDebug(dcApplication()) << "Init is running";
+        qCDebug(dcApplication()) << "Init is running...";
         return;
     }
 
