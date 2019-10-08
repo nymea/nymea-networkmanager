@@ -27,6 +27,7 @@
 #include "nymeadservice.h"
 #include "bluetooth/bluetoothserver.h"
 #include "nymea-networkmanager/networkmanager.h"
+#include "nymea-networkmanager/bluetooth/bluetoothserver.h"
 
 class Core : public QObject
 {
@@ -81,12 +82,12 @@ private:
     int m_advertisingTimeout = 60;
     bool m_initRunning = true;
 
-    void evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state);
+    void evaluateNetworkManagerState(NetworkManager::NetworkManagerState state);
 
+private slots:
     void startService();
     void stopService();
 
-private slots:
     void postRun();
 
     void onAdvertisingTimeout();
@@ -94,17 +95,8 @@ private slots:
     void onBluetoothServerRunningChanged(bool running);
     void onBluetoothServerConnectedChanged(bool connected);
 
-    void onNetworkManagerAvailableChanged(const bool &available);
-    void onNetworkManagerNetworkingEnabledChanged(bool enabled);
-    void onNetworkManagerWirelessEnabledChanged(bool enabled);
-    void onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state);
-    void onNetworkManagerWirelessDeviceAdded(WirelessNetworkDevice *wirelessDevice);
-    void onNetworkManagerWirelessDeviceRemoved(const QString &interface);
-
-    // Wireless device
-    void onWirelessDeviceBitRateChanged(int bitRate);
-    void onWirelessDeviceModeChanged(WirelessNetworkDevice::Mode mode);
-    void onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState state);
+    void onNetworkManagerAvailableChanged(bool available);
+    void onNetworkManagerStateChanged(NetworkManager::NetworkManagerState state);
 
     void onNymeaServiceAvailableChanged(bool available);
 

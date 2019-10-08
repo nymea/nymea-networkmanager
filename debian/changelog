@@ -1,3 +1,9 @@
+nymea-networkmanager (0.5.0) UNRELEASED; urgency=medium
+
+  * Migrate to libnymea-networkmanager bluetooth server and improve mode handling
+
+ -- Simon Stürz <simon.stuerz@nymea.io>  Tue, 08 Oct 2019 15:17:22 +0200
+
 nymea-networkmanager (0.4.1) xenial; urgency=medium
 
   [ Simon Stürz ]
