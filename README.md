@@ -7,11 +7,15 @@ if the system is currently not connected to any network. Once the system is conn
 
 First you have to install build dependencies:
 
-> Note: the libnymea-networkmanager-dev package can be installed from the [nymea repository](https://nymea.io/en/wiki/nymea/master/install/debian) or built 
+> Note: the `libnymea-networkmanager-dev` package can be installed from the [nymea repository](https://nymea.io/en/wiki/nymea/master/install/debian) or built 
 and installed from [source](https://github.com/nymea/libnymea-networkmanager).
 
+
+> Note: the `libnymea-gpio-dev` package can be installed from the [nymea repository](https://nymea.io/en/wiki/nymea/master/install/debian) or built
+and installed from [source](https://github.com/nymea/nymea-gpio).
+
     $ sudo apt update
-    $ sudo apt install qt5-default qtbase5-dev qtbase5-dev-tools libqt5bluetooth5 qtconnectivity5-dev libnymea-networkmanager-dev git
+    $ sudo apt install qt5-default qtbase5-dev qtbase5-dev-tools libqt5bluetooth5 qtconnectivity5-dev libnymea-networkmanager-dev libnymea-gpio-dev git
 
 Clone the source code and change into the source directory
 
@@ -63,45 +67,41 @@ this repository and it will be installed to /etc/nymea-networkmanager.conf with 
 # Command line parameters
 
     $ nymea-networkmanager --help
-    Usage:nymea-networkmanager [options]
+    Usage: ./nymea-networkmanager [options]
     
     This daemon allows to configure a wifi network using a bluetooth low energy connection.
     
-    Copyright © 2018 - 2019 Simon Stürz <simon.stuerz@nymea.io>
+    Copyright © 2018-2019 Simon Stürz <simon.stuerz@nymea.io>
+    
+    Modes: 
+      - offline  This mode starts the bluetooth server once the device is offline
+                 and not connected to any LAN network.
+      - once     This mode starts the bluetooth server only if no network configuration exists.
+                 Once a network connection exists the server will never start again.
+      - button   This mode enables the bluetooth server when a GPIO button has been pressed for
+                 the configured timeout periode.
+      - always   This mode enables the bluetooth server as long the application is running.
+      - start    This mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.
+    
+    
     
     Options:
-      -h, --help                                    Displays this help.
-      -v, --version                                 Displays version information.
-      -d, --debug                                   Enable more debug output.
-      -a, --advertise-name <NAME>                   The name of the bluetooth
-                                                    server. Default "BT WLAN setup".
-      -p, --platform-name <NAME>                    The name of the platform this
-                                                    daemon is running. Default
-                                                    "nymea-box".
-      -t, --timeout <SECONDS>                       The timeout of the bluetooth
-                                                    server. Minimum value is 10.
-                                                    Default "60".
-      -m, --mode <offline | once | always | start>  Run the daemon in a specific
-                                                    mode. Default is "offline".
-                                                    - offline: this mode starts the
-                                                    bluetooth server once the device
-                                                    is offline and not connected to
-                                                    any LAN network.
-                                                    - once: this mode starts the
-                                                    bluetooth server only if no
-                                                    network configuration exists.
-                                                    Once a network connection exists
-                                                    the server will never start
-                                                    again.
-                                                    - always: this mode enables the
-                                                    bluetooth server as long the
-                                                    application is running.
-                                                    - start: this mode starts the
-                                                    bluetooth server for 3 minutes
-                                                    on start and shuts down after a
-                                                    connection.
-    
-    
+      -h, --help                   Displays this help.
+      -v, --version                Displays version information.
+      -d, --debug                  Enable more debug output.
+      -a, --advertise-name <NAME>  The name of the bluetooth server. Default "BT
+                                   WLAN setup".
+      -p, --platform-name <NAME>   The name of the platform this daemon is running.
+                                   Default "nymea-box".
+      -g, --gpio <GPIO>            The GPIO sysfs number for the button GPIO. This
+                                   parameter is only needed for the "button" mode.
+      -t, --timeout <SECONDS>      The timeout of the bluetooth server. Minimum
+                                   value is 10. Default "60".
+      -m, --mode <MODE>            Run the daemon in a specific mode (offline,
+                                   once, always, button, start). Default is
+                                   "offline".
+        
+        
 
 # Bluetooth GATT profile
 -------------------------------------------

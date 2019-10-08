@@ -9,7 +9,7 @@ CONFIG += console link_pkgconfig
 CONFIG -= app_bundle
 
 TEMPLATE = app
-PKGCONFIG += nymea-networkmanager
+PKGCONFIG += nymea-networkmanager nymea-gpio
 
 HEADERS += \
     application.h \

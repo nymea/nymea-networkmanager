@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
     // Default configuration:
     Core::Mode mode = Core::ModeOffline;
     int timeout = 60;
+    int buttonGpio = -1;
     QString advertiseName = "BT WLAN setup";
     QString platformName = "nymea-box";
 
@@ -96,8 +97,17 @@ int main(int argc, char *argv[])
     QCommandLineParser parser;
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.setApplicationDescription(QString("\nThis daemon allows to configure a wifi network using a bluetooth low energy connection." \
-                                             "\n\nCopyright %1 2018-2019 Simon Stürz <simon.stuerz@nymea.io>").arg(QChar(0xA9)));
+    parser.setApplicationDescription(QString("\nThis daemon allows to configure a wifi network using a bluetooth low energy connection.\n\n"
+                                             "Copyright %1 2018-2019 Simon Stürz <simon.stuerz@nymea.io>\n\n"
+                                             "Modes: \n"
+                                             "  - offline  This mode starts the bluetooth server once the device is offline\n"
+                                             "             and not connected to any LAN network.\n"
+                                             "  - once     This mode starts the bluetooth server only if no network configuration exists.\n"
+                                             "             Once a network connection exists the server will never start again.\n"
+                                             "  - button   This mode enables the bluetooth server when a GPIO button has been pressed for\n"
+                                             "             the configured timeout periode.\n"
+                                             "  - always   This mode enables the bluetooth server as long the application is running.\n"
+                                             "  - start    This mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.\n\n").arg(QChar(0xA9)));
 
     QCommandLineOption debugOption(QStringList() << "d" << "debug", "Enable more debug output.");
     parser.addOption(debugOption);
@@ -110,15 +120,15 @@ int main(int argc, char *argv[])
     platformNameOption.setDefaultValue(platformName);
     parser.addOption(platformNameOption);
 
+    QCommandLineOption gpioOption(QStringList() << "g" << "gpio", QString("The GPIO sysfs number for the button GPIO. This parameter is only needed for the \"button\" mode."), "GPIO");
+    platformNameOption.setDefaultValue("-1");
+    parser.addOption(gpioOption);
+
     QCommandLineOption timeoutOption(QStringList() << "t" << "timeout", QString("The timeout of the bluetooth server. Minimum value is 10. Default \"%1\".").arg(timeout), "SECONDS");
     timeoutOption.setDefaultValue(QString::number(timeout));
     parser.addOption(timeoutOption);
 
-    QCommandLineOption modeOption(QStringList() << "m" << "mode", "Run the daemon in a specific mode. Default is \"offline\".\n\n" \
-                                                                  "- offline: this mode starts the bluetooth server once the device is offline and not connected to any LAN network.\n\n" \
-                                                                  "- once: this mode starts the bluetooth server only if no network configuration exists. Once a network connection exists the server will never start again.\n\n" \
-                                                                  "- always: this mode enables the bluetooth server as long the application is running.\n\n" \
-                                                                  "- start: this mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.\n\n", "offline | once | always | start");
+    QCommandLineOption modeOption(QStringList() << "m" << "mode", "Run the daemon in a specific mode (offline, once, always, button, start). Default is \"offline\".", "MODE");
     parser.addOption(modeOption);
 
     parser.process(application);
@@ -132,6 +142,7 @@ int main(int argc, char *argv[])
     QLoggingCategory::installFilter(loggingCategoryFilter);
 
     bool timeoutValueOk = true;
+    bool gpioValueOk = true;
 
     // Now read the cofig file, overriding defaults
     QStringList configLocations;
@@ -152,9 +163,14 @@ int main(int argc, char *argv[])
                     mode = Core::ModeStart;
                 } else if (settings.value("Mode").toString().toLower() == "once") {
                     mode = Core::ModeOnce;
+                } else if (settings.value("Mode").toString().toLower() == "button") {
+                    mode = Core::ModeButton;
                 } else {
                     qCWarning(dcApplication()).noquote() << QString("The config file's mode \"%1\" does not match the allowed modes.").arg(settings.value("Mode").toString());
                 }
+            }
+            if (settings.contains("ButtonGpio")) {
+                buttonGpio = settings.value("ButtonGpio", -1).toInt(&gpioValueOk);
             }
             if (settings.contains("Timeout")) {
                 timeout = settings.value("Timeout").toInt(&timeoutValueOk);
@@ -179,7 +195,10 @@ int main(int argc, char *argv[])
             mode = Core::ModeStart;
         } else if (parser.value(modeOption).toLower() == "once") {
             mode = Core::ModeOnce;
-        } else {
+        } else if (parser.value(modeOption).toLower() == "button") {
+            mode = Core::ModeButton;
+
+        }  else {
             qCWarning(dcApplication()).noquote() << QString("The given mode \"%1\" does not match the allowed modes.").arg(parser.value(modeOption));
             parser.showHelp(1);
         }
@@ -193,15 +212,27 @@ int main(int argc, char *argv[])
     if (parser.isSet(timeoutOption)) {
         timeout = parser.value(timeoutOption).toInt(&timeoutValueOk);
     }
+    if (parser.isSet(gpioOption)) {
+        buttonGpio = parser.value(gpioOption).toInt(&gpioValueOk);
+    }
 
     // All parsed. Validate input:
     if (!timeoutValueOk) {
         qCCritical(dcApplication()) << QString("Invalid timeout value passed: \"%1\". Please pass an integer >= 10").arg(parser.value(timeoutOption));
-        parser.showHelp(1);
+        return(1);
+    }
+    if (!gpioValueOk) {
+        qCCritical(dcApplication()) << QString("Invalid GPIO number value passed: \"%1\". Please pass an integer > 0").arg(parser.value(gpioOption));
+        return(1);
     }
     if (timeout < 10) {
         qCCritical(dcApplication()) << QString("Invalid timeout value passed: \"%1\". The minimal timeout is 10 [s].").arg(parser.value(timeoutOption));
-        parser.showHelp(1);
+        return(1);
+    }
+
+    if (mode == Core::ModeButton && buttonGpio <= 0) {
+        qCCritical(dcApplication()) << "Button mode selected but no valid GPIO passed.";
+        return(1);
     }
 
     qCDebug(dcApplication()) << "=====================================";
@@ -211,12 +242,15 @@ int main(int argc, char *argv[])
     qCDebug(dcApplication()) << "Platform name:" << platformName;
     qCDebug(dcApplication()) << "Mode:" << mode;
     qCDebug(dcApplication()) << "Timeout:" << timeout;
+    if (mode == Core::ModeButton)
+        qCDebug(dcApplication()) << "Button GPIO:" << buttonGpio;
 
     // Start core
     Core::instance()->setMode(mode);
     Core::instance()->setAdvertisingTimeout(timeout);
     Core::instance()->setAdvertiseName(advertiseName);
     Core::instance()->setPlatformName(platformName);
+    Core::instance()->setButtonGpio(buttonGpio);
 
     Core::instance()->run();
 

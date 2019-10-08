@@ -62,7 +62,7 @@ Core::Mode Core::mode() const
     return m_mode;
 }
 
-void Core::setMode(const Core::Mode &mode)
+void Core::setMode(Mode mode)
 {
     m_mode = mode;
 }
@@ -92,9 +92,19 @@ int Core::advertisingTimeout() const
     return m_advertisingTimeout;
 }
 
-void Core::setAdvertisingTimeout(const int advertisingTimeout)
+void Core::setAdvertisingTimeout(int advertisingTimeout)
 {
     m_advertisingTimeout = advertisingTimeout;
+}
+
+int Core::buttonGpio() const
+{
+    return m_buttonGpio;
+}
+
+void Core::setButtonGpio(int buttonGpio)
+{
+    m_buttonGpio = buttonGpio;
 }
 
 void Core::run()
@@ -243,6 +253,17 @@ void Core::postRun()
             qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
         }
         break;
+    case ModeButton:
+        // Enable button
+        m_button = new GpioButton(m_buttonGpio, this);
+        m_button->setLongPressedTimeout(2000);
+        connect(m_button, &GpioButton::longPressed, this, &Core::onButtonLongPressed);
+        if (!m_button->enable()) {
+            qCCritical(dcApplication()) << "Could not not enable GPIO button for" << m_buttonGpio;
+            m_button->deleteLater();
+            m_button = nullptr;
+        }
+        break;
     }
 }
 
@@ -287,6 +308,8 @@ void Core::onBluetoothServerRunningChanged(bool running)
                 m_nymeaService->enableBluetooth(true);
                 qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
             }
+            break;
+        case ModeButton:
             break;
         }
     }
@@ -336,12 +359,19 @@ void Core::onNetworkManagerAvailableChanged(bool available)
             qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
         }
         break;
+    case ModeButton:
+        break;
     }
 }
 
 void Core::onNetworkManagerStateChanged(NetworkManager::NetworkManagerState state)
 {
     evaluateNetworkManagerState(state);
+}
+
+void Core::onButtonLongPressed()
+{
+    startService();
 }
 
 void Core::onNymeaServiceAvailableChanged(bool available)
