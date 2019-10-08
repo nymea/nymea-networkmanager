@@ -7,8 +7,11 @@ if the system is currently not connected to any network. Once the system is conn
 
 First you have to install build dependencies:
 
+> Note: the libnymea-networkmanager-dev package can be installed from the [nymea repository](https://nymea.io/en/wiki/nymea/master/install/debian) or built 
+and installed from [source](https://github.com/nymea/libnymea-networkmanager).
+
     $ sudo apt update
-    $ sudo apt install qt5-default qtbase5-dev qtbase5-dev-tools libqt5bluetooth5 qtconnectivity5-dev git
+    $ sudo apt install qt5-default qtbase5-dev qtbase5-dev-tools libqt5bluetooth5 qtconnectivity5-dev libnymea-networkmanager-dev git
 
 Clone the source code and change into the source directory
 
@@ -27,7 +30,7 @@ And finally build the daemon and library
 
 You can run the daemon directly with following command
 
-    $ sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/libnymea-networkmanager/ ./nymea-networkmanager/nymea-networkmanager
+    $ sudo ./nymea-networkmanager/nymea-networkmanager
 
 
 ## Building the debian packages
@@ -44,8 +47,6 @@ In order to build a debian package you can do following:
     $ cd ..
 
     $ ls -l *.deb
-
-
 
 # Config file
 
