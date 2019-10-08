@@ -13,7 +13,7 @@ class NymeadService : public QObject
     Q_OBJECT
 public:
     explicit NymeadService(bool pushbuttonEnabled, QObject *parent = nullptr);
-
+    ~NymeadService();
     bool available() const;
 
     void enableBluetooth(const bool &enable);

@@ -24,6 +24,12 @@ NymeadService::NymeadService(bool pushbuttonEnabled, QObject *parent) :
     }
 }
 
+NymeadService::~NymeadService()
+{
+    // Note: re-enable bluetooth hardware resource on nymea
+    enableBluetooth(true);
+}
+
 bool NymeadService::available() const
 {
     return m_available;
