@@ -344,7 +344,7 @@ void Core::onNetworkManagerAvailableChanged(bool available)
     case ModeAlways:
         qCDebug(dcApplication()) << "Start the bluetooth service because of \"always\" mode.";
         // Give some grace periode for networkmanager
-        QTimer::singleShot(2000, this, &Core::startService);
+        QTimer::singleShot(4000, this, &Core::startService);
         break;
     case ModeStart:
         break;
