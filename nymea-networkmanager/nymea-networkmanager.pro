@@ -9,10 +9,7 @@ CONFIG += console link_pkgconfig
 CONFIG -= app_bundle
 
 TEMPLATE = app
-PKGCONFIG += libnymea-networkmanager
-
-INCLUDEPATH += $$top_srcdir/libnymea-networkmanager/
-LIBS += -L$$top_builddir/libnymea-networkmanager/ -lnymea-networkmanager
+PKGCONFIG += nymea-networkmanager
 
 HEADERS += \
     application.h \
