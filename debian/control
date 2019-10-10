@@ -9,7 +9,8 @@ Build-Depends: debhelper (>= 9.0.0),
   qtbase5-dev-tools,
   libqt5bluetooth5,
   qtconnectivity5-dev,
-  libnymea-networkmanager-dev
+  libnymea-networkmanager-dev,
+  libnymea-gpio-dev
 Standards-Version: 3.9.7
 
 Package: nymea-networkmanager
@@ -18,7 +19,8 @@ Depends: ${misc:Depends},
   libqt5network5,
   libqt5bluetooth5,
   network-manager,
-  libnymea-networkmanager
+  libnymea-networkmanager,
+  libnymea-gpio
 Description: Daemon for wireless configuration using bluetooth LE.
   This daemon allows to configure a wireless network using a bluetooth
   low energy gatt server. The tool is written in Qt 5.

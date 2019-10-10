@@ -9,7 +9,7 @@ CONFIG += console link_pkgconfig
 CONFIG -= app_bundle
 
 TEMPLATE = app
-PKGCONFIG += nymea-networkmanager
+PKGCONFIG += nymea-networkmanager nymea-gpio
 
 HEADERS += \
     application.h \
@@ -17,10 +17,7 @@ HEADERS += \
     loggingcategories.h \
     nymeadservice.h \
     pushbuttonagent.h \
-    bluetooth/bluetoothserver.h \
-    bluetooth/networkservice.h \
-    bluetooth/bluetoothuuids.h \
-    bluetooth/wirelessservice.h \
+
 
 SOURCES += \
     main.cpp \
@@ -29,9 +26,6 @@ SOURCES += \
     loggingcategories.cpp \
     nymeadservice.cpp \
     pushbuttonagent.cpp \
-    bluetooth/bluetoothserver.cpp \
-    bluetooth/networkservice.cpp \
-    bluetooth/wirelessservice.cpp \
 
 target.path = /usr/bin
 INSTALLS += target

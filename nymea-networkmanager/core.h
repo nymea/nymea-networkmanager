@@ -25,8 +25,10 @@
 #include <QObject>
 
 #include "nymeadservice.h"
+#include "nymea-gpio/gpiobutton.h"
 #include "bluetooth/bluetoothserver.h"
 #include "nymea-networkmanager/networkmanager.h"
+#include "nymea-networkmanager/bluetooth/bluetoothserver.h"
 
 class Core : public QObject
 {
@@ -37,7 +39,8 @@ public:
         ModeAlways,
         ModeOffline,
         ModeOnce,
-        ModeStart
+        ModeStart,
+        ModeButton
     };
     Q_ENUM(Mode)
 
@@ -49,7 +52,7 @@ public:
     NymeadService *nymeaService() const;
 
     Mode mode() const;
-    void setMode(const Mode &mode);
+    void setMode(Mode mode);
 
     QString advertiseName() const;
     void setAdvertiseName(const QString &name);
@@ -58,7 +61,10 @@ public:
     void setPlatformName(const QString &name);
 
     int advertisingTimeout() const;
-    void setAdvertisingTimeout(const int advertisingTimeout);
+    void setAdvertisingTimeout(int advertisingTimeout);
+
+    int buttonGpio() const;
+    void setButtonGpio(int buttonGpio);
 
     void run();
 
@@ -72,6 +78,7 @@ private:
     BluetoothServer *m_bluetoothServer = nullptr;
     NymeadService *m_nymeaService = nullptr;
     WirelessNetworkDevice *m_wirelessDevice = nullptr;
+    GpioButton *m_button = nullptr;
 
     QTimer *m_advertisingTimer = nullptr;
 
@@ -80,13 +87,14 @@ private:
     QString m_platformName;
     int m_advertisingTimeout = 60;
     bool m_initRunning = true;
+    int m_buttonGpio = -1;
 
-    void evaluateNetworkManagerState(const NetworkManager::NetworkManagerState &state);
+    void evaluateNetworkManagerState(NetworkManager::NetworkManagerState state);
 
+private slots:
     void startService();
     void stopService();
 
-private slots:
     void postRun();
 
     void onAdvertisingTimeout();
@@ -94,17 +102,10 @@ private slots:
     void onBluetoothServerRunningChanged(bool running);
     void onBluetoothServerConnectedChanged(bool connected);
 
-    void onNetworkManagerAvailableChanged(const bool &available);
-    void onNetworkManagerNetworkingEnabledChanged(bool enabled);
-    void onNetworkManagerWirelessEnabledChanged(bool enabled);
-    void onNetworkManagerStateChanged(const NetworkManager::NetworkManagerState &state);
-    void onNetworkManagerWirelessDeviceAdded(WirelessNetworkDevice *wirelessDevice);
-    void onNetworkManagerWirelessDeviceRemoved(const QString &interface);
+    void onNetworkManagerAvailableChanged(bool available);
+    void onNetworkManagerStateChanged(NetworkManager::NetworkManagerState state);
 
-    // Wireless device
-    void onWirelessDeviceBitRateChanged(int bitRate);
-    void onWirelessDeviceModeChanged(WirelessNetworkDevice::Mode mode);
-    void onWirelessDeviceStateChanged(const NetworkDevice::NetworkDeviceState state);
+    void onButtonLongPressed();
 
     void onNymeaServiceAvailableChanged(bool available);
 
