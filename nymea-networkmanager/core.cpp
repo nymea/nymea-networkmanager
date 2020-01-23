@@ -159,6 +159,10 @@ void Core::evaluateNetworkManagerState(NetworkManager::NetworkManagerState state
     if (m_mode != ModeOffline)
         return;
 
+    // If we are still initializing, we don't need to react on the state changed
+    if (m_initRunning)
+        return;
+
     // Note: if the wireless device is in the access point mode, the bluetooth server should stop
     if (m_wirelessDevice && m_wirelessDevice->mode() == WirelessNetworkDevice::ModeAccessPoint) {
         stopService();
@@ -333,12 +337,12 @@ void Core::onNetworkManagerAvailableChanged(bool available)
         return;
     }
 
+    qCDebug(dcApplication()) << "Networkmanager is now available.";
+
     if (m_initRunning) {
-        qCDebug(dcApplication()) << "Init is running...";
+        qCDebug(dcApplication()) << "Init is still running...";
         return;
     }
-
-    qCDebug(dcApplication()) << "Networkmanager is now available.";
 
     switch (m_mode) {
     case ModeAlways:

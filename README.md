@@ -14,6 +14,9 @@ and installed from [source](https://github.com/nymea/libnymea-networkmanager).
 > Note: the `libnymea-gpio-dev` package can be installed from the [nymea repository](https://nymea.io/en/wiki/nymea/master/install/debian) or built
 and installed from [source](https://github.com/nymea/nymea-gpio).
 
+> Note: a `Qt` verion `>=` `5.7.0` is required in order to work and bluez version `>=` `5.48`.
+
+
     $ sudo apt update
     $ sudo apt install qt5-default qtbase5-dev qtbase5-dev-tools libqt5bluetooth5 qtconnectivity5-dev libnymea-networkmanager-dev libnymea-gpio-dev git
 
