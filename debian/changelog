@@ -1,3 +1,14 @@
+nymea-networkmanager (0.5.1) xenial; urgency=medium
+
+  [ Simon Stürz ]
+  * Update documentation
+
+  [ Michael Zanetti ]
+  * Fix building in sbuild
+  * Update copyright
+
+ -- Jenkins <jenkins@nymea.io>  Thu, 23 Jan 2020 13:40:42 +0100
+
 nymea-networkmanager (0.5.0) xenial; urgency=medium
   [ Simon Stürz ]
   * Update pkg-config include for libnymea-networkmanager
