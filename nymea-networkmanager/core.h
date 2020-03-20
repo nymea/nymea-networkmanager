@@ -36,8 +36,8 @@
 #include "nymeadservice.h"
 #include "nymea-gpio/gpiobutton.h"
 #include "bluetooth/bluetoothserver.h"
-#include "nymea-networkmanager/networkmanager.h"
-#include "nymea-networkmanager/bluetooth/bluetoothserver.h"
+#include "networkmanager.h"
+#include "bluetooth/bluetoothserver.h"
 
 class Core : public QObject
 {
@@ -95,7 +95,6 @@ private:
     QString m_advertiseName;
     QString m_platformName;
     int m_advertisingTimeout = 60;
-    bool m_initRunning = true;
     int m_buttonGpio = -1;
 
     void evaluateNetworkManagerState(NetworkManager::NetworkManagerState state);
@@ -103,8 +102,6 @@ private:
 private slots:
     void startService();
     void stopService();
-
-    void postRun();
 
     void onAdvertisingTimeout();
 
