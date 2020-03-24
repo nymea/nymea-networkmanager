@@ -1,3 +1,10 @@
+nymea-networkmanager (0.5.2) xenial; urgency=medium
+
+  [ Michael Zanetti ]
+  * Fix race conditions at startup.
+
+ -- Jenkins <jenkins@nymea.io>  Tue, 24 Mar 2020 13:21:15 +0100
+
 nymea-networkmanager (0.5.1) xenial; urgency=medium
 
   [ Simon Stürz ]
