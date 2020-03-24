@@ -119,13 +119,7 @@ void Core::setButtonGpio(int buttonGpio)
 void Core::run()
 {
     // Start the networkmanager
-    if (!m_networkManager->start()) {
-        qCWarning(dcApplication()) << "Could not start network manager. Please make sure the networkmanager is available.";
-        return;
-    }
-
-    // Note: give network-manager more time to start and get online status
-    QTimer::singleShot(3000, this, &Core::postRun);
+    m_networkManager->start();
 }
 
 Core::Core(QObject *parent) :
@@ -146,6 +140,10 @@ Core::Core(QObject *parent) :
     m_advertisingTimer = new QTimer(this);
     m_advertisingTimer->setSingleShot(true);
     connect(m_advertisingTimer, &QTimer::timeout, this, &Core::onAdvertisingTimeout);
+
+    m_button = new GpioButton(m_buttonGpio, this);
+    m_button->setLongPressedTimeout(2000);
+    connect(m_button, &GpioButton::longPressed, this, &Core::onButtonLongPressed);
 }
 
 Core::~Core()
@@ -166,10 +164,6 @@ Core::~Core()
 void Core::evaluateNetworkManagerState(NetworkManager::NetworkManagerState state)
 {
     if (m_mode != ModeOffline)
-        return;
-
-    // If we are still initializing, we don't need to react on the state changed
-    if (m_initRunning)
         return;
 
     // Note: if the wireless device is in the access point mode, the bluetooth server should stop
@@ -210,7 +204,6 @@ void Core::evaluateNetworkManagerState(NetworkManager::NetworkManagerState state
 
 void Core::startService()
 {
-    qCDebug(dcApplication()) << "Start the service...";
     if (!m_networkManager->available()) {
         qCWarning(dcApplication()) << "Could not start services. There is no network manager available.";
         return;
@@ -235,48 +228,8 @@ void Core::startService()
 void Core::stopService()
 {
     if (m_bluetoothServer && m_bluetoothServer->running()) {
-        qCDebug(dcApplication()) << "Stop bluetooth service";
+        qCDebug(dcApplication()) << "Stopping bluetooth service";
         m_bluetoothServer->stop();
-    }
-}
-
-void Core::postRun()
-{
-    qCDebug(dcApplication()) << "Post run service";
-    m_initRunning = false;
-
-    switch (m_mode) {
-    case ModeAlways:
-        qCDebug(dcApplication()) << "Start the bluetooth service because of \"always\" mode.";
-        startService();
-        break;
-    case ModeStart:
-        qCDebug(dcApplication()) << "Start the bluetooth service because of \"start\" mode.";
-        startService();
-        m_advertisingTimer->start(m_advertisingTimeout * 1000);
-        break;
-    case ModeOffline:
-        evaluateNetworkManagerState(m_networkManager->state());
-        break;
-    case ModeOnce:
-        if (m_networkManager->networkSettings()->connections().isEmpty()) {
-            qCDebug(dcApplication()) << "Start the bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
-            startService();
-        } else {
-            qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
-        }
-        break;
-    case ModeButton:
-        // Enable button
-        m_button = new GpioButton(m_buttonGpio, this);
-        m_button->setLongPressedTimeout(2000);
-        connect(m_button, &GpioButton::longPressed, this, &Core::onButtonLongPressed);
-        if (!m_button->enable()) {
-            qCCritical(dcApplication()) << "Could not not enable GPIO button for" << m_buttonGpio;
-            m_button->deleteLater();
-            m_button = nullptr;
-        }
-        break;
     }
 }
 
@@ -348,31 +301,37 @@ void Core::onNetworkManagerAvailableChanged(bool available)
 
     qCDebug(dcApplication()) << "Networkmanager is now available.";
 
-    if (m_initRunning) {
-        qCDebug(dcApplication()) << "Init is still running...";
-        return;
-    }
-
     switch (m_mode) {
     case ModeAlways:
-        qCDebug(dcApplication()) << "Start the bluetooth service because of \"always\" mode.";
-        // Give some grace periode for networkmanager
-        QTimer::singleShot(4000, this, &Core::startService);
+        qCDebug(dcApplication()) << "Starting the Bluetooth service because of \"always\" mode.";
+        startService();
         break;
     case ModeStart:
+        // Only start it once in "start" mode...
+        static bool alreadyRan = false;
+        if (alreadyRan) {
+            return;
+        }
+        qCDebug(dcApplication()) << "Starting the Bluetooth service because of \"start\" mode.";
+        alreadyRan = true;
+        startService();
+        m_advertisingTimer->start(m_advertisingTimeout * 1000);
         break;
     case ModeOffline:
         evaluateNetworkManagerState(m_networkManager->state());
         break;
     case ModeOnce:
         if (m_networkManager->networkSettings()->connections().isEmpty()) {
-            qCDebug(dcApplication()) << "Start the bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
+            qCDebug(dcApplication()) << "Starting the Bluetooth service because of \"once\" mode and there is currenlty no network configured yet.";
             startService();
         } else {
-            qCDebug(dcApplication()) << "Not starting the bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
+            qCDebug(dcApplication()) << "Not starting the Bluetooth service because of \"once\" mode. There are" << m_networkManager->networkSettings()->connections().count() << "network configurations.";
         }
         break;
     case ModeButton:
+        if (!m_button->enable()) {
+            qCCritical(dcApplication()) << "Failed to enable the GPIO button for" << m_buttonGpio;
+        }
         break;
     }
 }
