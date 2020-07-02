@@ -1,3 +1,10 @@
+nymea-networkmanager (0.5.3) xenial; urgency=medium
+
+  [ Michael Zanetti ]
+  * Fix build with newest libnymea-networkmanager
+
+ -- Jenkins <jenkins@nymea.io>  Thu, 02 Jul 2020 11:10:29 +0200
+
 nymea-networkmanager (0.5.2) xenial; urgency=medium
 
   [ Michael Zanetti ]
