@@ -167,7 +167,7 @@ void Core::evaluateNetworkManagerState(NetworkManager::NetworkManagerState state
         return;
 
     // Note: if the wireless device is in the access point mode, the bluetooth server should stop
-    if (m_wirelessDevice && m_wirelessDevice->mode() == WirelessNetworkDevice::ModeAccessPoint) {
+    if (m_wirelessDevice && m_wirelessDevice->wirelessMode() == WirelessNetworkDevice::WirelessModeAccessPoint) {
         stopService();
         return;
     }
