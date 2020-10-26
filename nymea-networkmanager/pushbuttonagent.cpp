@@ -51,7 +51,7 @@ bool PushButtonAgent::init(QDBusConnection::BusType busType)
     }
 
     QDBusMessage message = QDBusMessage::createMethodCall("io.guh.nymead", "/io/guh/nymead/UserManager", QString(), "RegisterButtonAgent");
-    message << qVariantFromValue(QDBusObjectPath("/io/nymea/nymea-networkmanager/pushbutton"));
+    message << QVariant::fromValue(QDBusObjectPath("/io/nymea/nymea-networkmanager/pushbutton"));
     QDBusMessage reply = bus.call(message);
     if (!reply.errorName().isEmpty()) {
         qCWarning(dcNymeaService()) << "PushButtonAgent: Error registering PushButton agent:" << reply.errorMessage();
