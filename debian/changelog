@@ -1,3 +1,11 @@
+nymea-networkmanager (0.5.4) xenial; urgency=medium
+
+  [ Michael Zanetti ]
+  * Fix startup sequence on Raspberry Pi 4
+  * Don't use deprecated qVariantFromValue
+
+ -- Jenkins <jenkins@nymea.io>  Wed, 28 Oct 2020 16:20:14 +0100
+
 nymea-networkmanager (0.5.3) xenial; urgency=medium
 
   [ Michael Zanetti ]
