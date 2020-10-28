@@ -1,8 +1,8 @@
 [Unit]
 Description=Daemon for nymea to configure wifi network using a Bluetooth LE connection
 Documentation=https://github.com/nymea/nymea-networkmanager
-Wants=bluetooth.service NetworkManager.service
-After=bluetooth.service NetworkManager.service
+Requires=bluetooth.target bluetooth.service NetworkManager.service
+After=bluetooth.service bluetooth.target network.target multi-user.target
 
 [Service]
 ExecStart=/usr/bin/nymea-networkmanager -d
@@ -12,5 +12,4 @@ Restart=on-failure
 Type=simple
 
 [Install]
-WantedBy=multi-user.target
-
+WantedBy=graphical.target
