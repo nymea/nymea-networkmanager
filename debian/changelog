@@ -1,3 +1,11 @@
+nymea-networkmanager (0.5.5) xenial; urgency=medium
+
+  [ Simon Stürz ]
+  * Update to the libnymea-networkmanager adjustments and skip SIGSEGV
+    handling
+
+ -- Jenkins <jenkins@nymea.io>  Tue, 17 Nov 2020 15:57:30 +0100
+
 nymea-networkmanager (0.5.4) xenial; urgency=medium
 
   [ Michael Zanetti ]
