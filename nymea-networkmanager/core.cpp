@@ -131,8 +131,8 @@ Core::Core(QObject *parent) :
 
     m_bluetoothServer = new BluetoothServer(m_networkManager);
 
-    connect(m_bluetoothServer, &BluetoothServer::runningChanged, this, &Core::onBluetoothServerRunningChanged);
-    connect(m_bluetoothServer, &BluetoothServer::connectedChanged, this, &Core::onBluetoothServerConnectedChanged);
+    connect(m_bluetoothServer, &BluetoothServer::runningChanged, this, &Core::onBluetoothServerRunningChanged, Qt::QueuedConnection);
+    connect(m_bluetoothServer, &BluetoothServer::connectedChanged, this, &Core::onBluetoothServerConnectedChanged, Qt::QueuedConnection);
 
     m_nymeaService = new NymeadService(false, this);
     connect(m_nymeaService, &NymeadService::availableChanged, this, &Core::onNymeaServiceAvailableChanged);
@@ -192,9 +192,13 @@ void Core::evaluateNetworkManagerState(NetworkManager::NetworkManagerState state
     case NetworkManager::NetworkManagerStateAsleep:
     case NetworkManager::NetworkManagerStateDisconnected:
     case NetworkManager::NetworkManagerStateConnectedLocal:
-        // Everything else is not connected, start the service
-        qCDebug(dcApplication()) << "Start the bluetooth service because of \"offline\" mode.";
-        startService();
+        if (m_networkManager->available()) {
+            // Everything else is not connected, start the service
+            qCDebug(dcApplication()) << "Start the bluetooth service because of \"offline\" mode.";
+            startService();
+        } else {
+            qCDebug(dcApplication()) << "Not starting the service yet because the networkmanager is not available.";
+        }
         break;
     default:
         qCDebug(dcApplication()) << "Ignoring" << state;
@@ -288,7 +292,6 @@ void Core::onBluetoothServerConnectedChanged(bool connected)
 
     if (!connected) {
         m_advertisingTimer->stop();
-        m_bluetoothServer->stop();
     }
 }
 

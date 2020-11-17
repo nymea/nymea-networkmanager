@@ -52,10 +52,6 @@ static void catchUnixSignals(const std::vector<int>& quitSignals, const std::vec
         case SIGHUP:
             qCDebug(dcApplication()) << "Cought SIGHUP quit signal...";
             break;
-        case SIGSEGV: {
-            qCCritical(dcApplication()) << "Cought SIGSEGV signal. Segmentation fault!";
-            exit(EXIT_FAILURE);
-        }
         default:
             qCDebug(dcApplication()) << "Cought unhandled signal" << sig;
             break;
@@ -87,5 +83,5 @@ static void catchUnixSignals(const std::vector<int>& quitSignals, const std::vec
 Application::Application(int &argc, char **argv) :
     QCoreApplication(argc, argv)
 {
-    catchUnixSignals({SIGQUIT, SIGINT, SIGTERM, SIGHUP, SIGSEGV});
+    catchUnixSignals({SIGQUIT, SIGINT, SIGTERM, SIGHUP});
 }
