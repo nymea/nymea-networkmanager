@@ -29,7 +29,6 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "application.h"
-#include "loggingcategories.h"
 #include "core.h"
 
 #include <signal.h>
@@ -67,7 +66,6 @@ static void catchUnixSignals(const std::vector<int>& quitSignals, const std::vec
         qCDebug(dcApplication()) << "=====================================";
         s_aboutToShutdown = true;
 
-        Core::instance()->destroy();
         Application::quit();
     };
 

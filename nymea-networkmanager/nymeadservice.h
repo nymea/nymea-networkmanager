@@ -46,7 +46,7 @@ public:
     ~NymeadService();
     bool available() const;
 
-    void enableBluetooth(const bool &enable);
+    void enableBluetooth(bool enable);
     void pushButtonPressed();
 
 private:
