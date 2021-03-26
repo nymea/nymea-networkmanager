@@ -92,10 +92,17 @@ this repository and it will be installed to /etc/nymea-networkmanager.conf with 
       -h, --help                   Displays this help.
       -v, --version                Displays version information.
       -d, --debug                  Enable more debug output.
-      -a, --advertise-name <NAME>  The name of the bluetooth server. Default "BT
-                                   WLAN setup".
+      -a, --advertise-name <NAME>  The name of the bluetooth server. Default
+                                  "BT-WiFi". NOTE: The length is limited to 8
+                                  characters.
+      -f, --force-name             Enforce the full name to be used even if it is
+                                   longer than 8 characters. IMPORTANT: This will
+                                   displace the Service UUID in the discovery data
+                                   which implies that client applications cannot
+                                   discover the wifi setup service on this device
+                                   any more.
       -p, --platform-name <NAME>   The name of the platform this daemon is running.
-                                   Default "nymea-box".
+                                   Default "nymea".
       -g, --gpio <GPIO>            The GPIO sysfs number for the button GPIO. This
                                    parameter is only needed for the "button" mode.
       -t, --timeout <SECONDS>      The timeout of the bluetooth server. Minimum
@@ -104,8 +111,7 @@ this repository and it will be installed to /etc/nymea-networkmanager.conf with 
                                    once, always, button, start). Default is
                                    "offline".
       -b, --dbus-type <DBUSTYPE>   If given, a DBus interface will be exposed on
-                                   the chosen DBus bus type (session, system)
-        
+                                   the chosen DBus bus type (session, system)        
         
 
 # Bluetooth GATT profile

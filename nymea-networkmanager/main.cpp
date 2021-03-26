@@ -93,8 +93,9 @@ int main(int argc, char *argv[])
     Core::Mode mode = Core::ModeOffline;
     int timeout = 60;
     int buttonGpio = -1;
-    QString advertiseName = "BT WLAN setup";
-    QString platformName = "nymea-box";
+    QString advertiseName = "BT-WiFi";
+    bool forceFullName = false;
+    QString platformName = "nymea";
     QString dbusBusType;
 
     Application application(argc, argv);
@@ -121,9 +122,12 @@ int main(int argc, char *argv[])
     QCommandLineOption debugOption(QStringList() << "d" << "debug", "Enable more debug output.");
     parser.addOption(debugOption);
 
-    QCommandLineOption advertiseNameOption(QStringList() << "a" << "advertise-name", QString("The name of the bluetooth server. Default \"%1\".").arg(advertiseName), "NAME");
+    QCommandLineOption advertiseNameOption(QStringList() << "a" << "advertise-name", QString("The name of the bluetooth server. Default \"%1\". NOTE: The length is limited to 8 characters.").arg(advertiseName), "NAME");
     advertiseNameOption.setDefaultValue(advertiseName);
     parser.addOption(advertiseNameOption);
+
+    QCommandLineOption forceFullNameOption(QStringList() << "f" << "force-name", QString("Enforce the full name to be used even if it is longer than 8 characters. IMPORTANT: This will displace the Service UUID in the discovery data which implies that client applications cannot discover the wifi setup service on this device any more."));
+    parser.addOption(forceFullNameOption);
 
     QCommandLineOption platformNameOption(QStringList() << "p" << "platform-name", QString("The name of the platform this daemon is running. Default \"%1\".").arg(platformName), "NAME");
     platformNameOption.setDefaultValue(platformName);
@@ -191,6 +195,9 @@ int main(int argc, char *argv[])
             if (settings.contains("AdvertiseName")) {
                 advertiseName = settings.value("AdvertiseName").toString();
             }
+            if (settings.contains("ForceFullName")) {
+                forceFullName = settings.value("ForceFullName").toBool();
+            }
             if (settings.contains("PlatformName")) {
                 platformName = settings.value("PlatformName").toString();
             }
@@ -221,6 +228,9 @@ int main(int argc, char *argv[])
     }
     if (parser.isSet(advertiseNameOption)) {
         advertiseName = parser.value(advertiseNameOption);
+    }
+    if (parser.isSet(forceFullNameOption)) {
+        forceFullName = true;
     }
     if (parser.isSet(platformNameOption)) {
         platformName = parser.value(platformNameOption);
@@ -274,7 +284,7 @@ int main(int argc, char *argv[])
     Core core(&application);
     core.setMode(mode);
     core.setAdvertisingTimeout(timeout);
-    core.setAdvertiseName(advertiseName);
+    core.setAdvertiseName(advertiseName, forceFullName);
     core.setPlatformName(platformName);
     core.addGPioButton(buttonGpio);
     if (dbusBusType == "system") {
