@@ -14,8 +14,8 @@ PKGCONFIG += nymea-networkmanager nymea-gpio
 HEADERS += \
     application.h \
     core.h \
-    loggingcategories.h \
     nymeadservice.h \
+    nymeanetworkmanagerdbusservice.h \
     pushbuttonagent.h \
 
 
@@ -23,8 +23,8 @@ SOURCES += \
     main.cpp \
     application.cpp \
     core.cpp \
-    loggingcategories.cpp \
     nymeadservice.cpp \
+    nymeanetworkmanagerdbusservice.cpp \
     pushbuttonagent.cpp \
 
 target.path = /usr/bin

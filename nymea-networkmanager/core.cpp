@@ -29,27 +29,11 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "core.h"
-#include "loggingcategories.h"
+#include "nymeanetworkmanagerdbusservice.h"
 
 #include <QTimer>
 
-Core* Core::s_instance = nullptr;
-
-Core *Core::instance()
-{
-    if (!s_instance)
-        s_instance = new Core();
-
-    return s_instance;
-}
-
-void Core::destroy()
-{    
-    if (s_instance)
-        delete s_instance;
-
-    s_instance = nullptr;
-}
+Q_LOGGING_CATEGORY(dcApplication, "Application")
 
 NetworkManager *Core::networkManager() const
 {
@@ -106,14 +90,18 @@ void Core::setAdvertisingTimeout(int advertisingTimeout)
     m_advertisingTimeout = advertisingTimeout;
 }
 
-int Core::buttonGpio() const
+void Core::addGPioButton(int buttonGpio)
 {
-    return m_buttonGpio;
+    GpioButton *button = new GpioButton(buttonGpio, this);
+    button->setLongPressedTimeout(2000);
+    connect(button, &GpioButton::longPressed, this, &Core::startService);
+    m_buttons.append(button);
 }
 
-void Core::setButtonGpio(int buttonGpio)
+void Core::enableDBusInterface(QDBusConnection::BusType busType)
 {
-    m_buttonGpio = buttonGpio;
+    NymeaNetworkManagerDBusService *dbusService = new NymeaNetworkManagerDBusService(busType, this);
+    connect(dbusService, &NymeaNetworkManagerDBusService::enableBluetoothServerCalled, this, &Core::startService);
 }
 
 void Core::run()
@@ -140,10 +128,6 @@ Core::Core(QObject *parent) :
     m_advertisingTimer = new QTimer(this);
     m_advertisingTimer->setSingleShot(true);
     connect(m_advertisingTimer, &QTimer::timeout, this, &Core::onAdvertisingTimeout);
-
-    m_button = new GpioButton(m_buttonGpio, this);
-    m_button->setLongPressedTimeout(2000);
-    connect(m_button, &GpioButton::longPressed, this, &Core::onButtonLongPressed);
 }
 
 Core::~Core()
@@ -290,8 +274,8 @@ void Core::onBluetoothServerConnectedChanged(bool connected)
     qCDebug(dcApplication()) << "Bluetooth client" << (connected ? "connected" : "disconnected");
     m_advertisingTimer->stop();
 
-    if (!connected) {
-        m_advertisingTimer->stop();
+    if (!connected && m_mode != ModeAlways) {
+        m_bluetoothServer->stop();
     }
 }
 
@@ -332,8 +316,10 @@ void Core::onNetworkManagerAvailableChanged(bool available)
         }
         break;
     case ModeButton:
-        if (!m_button->enable()) {
-            qCCritical(dcApplication()) << "Failed to enable the GPIO button for" << m_buttonGpio;
+        foreach (GpioButton* button, m_buttons) {
+            if (!button->enable()) {
+                qCCritical(dcApplication()) << "Failed to enable the GPIO button for" << button->gpioNumber();
+            }
         }
         break;
     }
@@ -342,11 +328,6 @@ void Core::onNetworkManagerAvailableChanged(bool available)
 void Core::onNetworkManagerStateChanged(NetworkManager::NetworkManagerState state)
 {
     evaluateNetworkManagerState(state);
-}
-
-void Core::onButtonLongPressed()
-{
-    startService();
 }
 
 void Core::onNymeaServiceAvailableChanged(bool available)

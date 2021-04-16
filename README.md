@@ -103,6 +103,8 @@ this repository and it will be installed to /etc/nymea-networkmanager.conf with 
       -m, --mode <MODE>            Run the daemon in a specific mode (offline,
                                    once, always, button, start). Default is
                                    "offline".
+      -b, --dbus-type <DBUSTYPE>   If given, a DBus interface will be exposed on
+                                   the chosen DBus bus type (session, system)
         
         
 

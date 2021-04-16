@@ -38,7 +38,6 @@
 
 #include "core.h"
 #include "application.h"
-#include "loggingcategories.h"
 
 static const char *const normal = "\033[0m";
 static const char *const warning = "\e[33m";
@@ -96,6 +95,7 @@ int main(int argc, char *argv[])
     int buttonGpio = -1;
     QString advertiseName = "BT WLAN setup";
     QString platformName = "nymea-box";
+    QString dbusBusType;
 
     Application application(argc, argv);
     application.setApplicationName("nymea-networkmanager");
@@ -140,6 +140,9 @@ int main(int argc, char *argv[])
     QCommandLineOption modeOption(QStringList() << "m" << "mode", "Run the daemon in a specific mode (offline, once, always, button, start). Default is \"offline\".", "MODE");
     parser.addOption(modeOption);
 
+    QCommandLineOption dbusBusTypeOption({"b", "dbus-type"}, "If given, a DBus interface will be exposed on the chosen DBus bus type (session, system)", "DBUSTYPE");
+    parser.addOption(dbusBusTypeOption);
+
     parser.process(application);
 
     // Enable debug categories
@@ -147,6 +150,7 @@ int main(int argc, char *argv[])
     s_loggingFilters.insert("NymeaService", parser.isSet(debugOption));
     s_loggingFilters.insert("NetworkManager", parser.isSet(debugOption) );
     s_loggingFilters.insert("NetworkManagerBluetoothServer", parser.isSet(debugOption));
+    s_loggingFilters.insert("DBus", parser.isSet(debugOption));
 
     QLoggingCategory::installFilter(loggingCategoryFilter);
 
@@ -190,6 +194,9 @@ int main(int argc, char *argv[])
             if (settings.contains("PlatformName")) {
                 platformName = settings.value("PlatformName").toString();
             }
+            if (settings.contains("DBusBusType")) {
+                dbusBusType = settings.value("DBusBusType").toString();
+            }
             break;
         }
     }
@@ -224,6 +231,9 @@ int main(int argc, char *argv[])
     if (parser.isSet(gpioOption)) {
         buttonGpio = parser.value(gpioOption).toInt(&gpioValueOk);
     }
+    if (parser.isSet(dbusBusTypeOption)) {
+        dbusBusType = parser.value(dbusBusTypeOption);
+    }
 
     // All parsed. Validate input:
     if (!timeoutValueOk) {
@@ -238,10 +248,12 @@ int main(int argc, char *argv[])
         qCCritical(dcApplication()) << QString("Invalid timeout value passed: \"%1\". The minimal timeout is 10 [s].").arg(parser.value(timeoutOption));
         return(1);
     }
-
     if (mode == Core::ModeButton && buttonGpio <= 0) {
-        qCCritical(dcApplication()) << "Button mode selected but no valid GPIO passed.";
-        return(1);
+        qCWarning(dcApplication()) << "Button mode selected but no valid GPIO passed.";
+    }
+    if (!dbusBusType.isEmpty() && dbusBusType != "system" && dbusBusType != "session" && dbusBusType != "none") {
+        qCCritical(dcApplication()) << "Invalid DBus bus type:" << dbusBusType;
+        return 1;
     }
 
     qCDebug(dcApplication()) << "=====================================";
@@ -251,17 +263,27 @@ int main(int argc, char *argv[])
     qCDebug(dcApplication()) << "Platform name:" << platformName;
     qCDebug(dcApplication()) << "Mode:" << mode;
     qCDebug(dcApplication()) << "Timeout:" << timeout;
-    if (mode == Core::ModeButton)
+    if (mode == Core::ModeButton && buttonGpio > 0) {
         qCDebug(dcApplication()) << "Button GPIO:" << buttonGpio;
+    }
+    if (!dbusBusType.isEmpty() && dbusBusType != "none") {
+        qCDebug(dcApplication()) << "DBus interface:" << dbusBusType;
+    }
 
     // Start core
-    Core::instance()->setMode(mode);
-    Core::instance()->setAdvertisingTimeout(timeout);
-    Core::instance()->setAdvertiseName(advertiseName);
-    Core::instance()->setPlatformName(platformName);
-    Core::instance()->setButtonGpio(buttonGpio);
+    Core core(&application);
+    core.setMode(mode);
+    core.setAdvertisingTimeout(timeout);
+    core.setAdvertiseName(advertiseName);
+    core.setPlatformName(platformName);
+    core.addGPioButton(buttonGpio);
+    if (dbusBusType == "system") {
+        core.enableDBusInterface(QDBusConnection::SystemBus);
+    } else if (dbusBusType == "session") {
+        core.enableDBusInterface(QDBusConnection::SessionBus);
+    }
 
-    Core::instance()->run();
+    core.run();
 
     return application.exec();
 }

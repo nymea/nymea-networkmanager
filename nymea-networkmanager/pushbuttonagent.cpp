@@ -29,10 +29,12 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "pushbuttonagent.h"
-#include "loggingcategories.h"
 
 #include <QDBusMessage>
 #include <QDBusObjectPath>
+#include <QLoggingCategory>
+
+Q_DECLARE_LOGGING_CATEGORY(dcNymeaService)
 
 PushButtonAgent::PushButtonAgent(QObject *parent) :
     QObject(parent)

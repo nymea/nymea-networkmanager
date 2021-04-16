@@ -39,10 +39,14 @@
 #include "networkmanager.h"
 #include "bluetooth/bluetoothserver.h"
 
+Q_DECLARE_LOGGING_CATEGORY(dcApplication)
+
 class Core : public QObject
 {
     Q_OBJECT
 public:
+    explicit Core(QObject *parent = nullptr);
+    ~Core();
 
     enum Mode {
         ModeAlways,
@@ -52,9 +56,6 @@ public:
         ModeButton
     };
     Q_ENUM(Mode)
-
-    static Core* instance();
-    void destroy();
 
     NetworkManager *networkManager() const;
     BluetoothServer *bluetoothServer() const;
@@ -72,22 +73,17 @@ public:
     int advertisingTimeout() const;
     void setAdvertisingTimeout(int advertisingTimeout);
 
-    int buttonGpio() const;
-    void setButtonGpio(int buttonGpio);
+    void addGPioButton(int buttonGpio);
+    void enableDBusInterface(QDBusConnection::BusType busType);
 
     void run();
 
 private:
-    explicit Core(QObject *parent = nullptr);
-    ~Core();
-
-    static Core *s_instance;
-
     NetworkManager *m_networkManager = nullptr;
     BluetoothServer *m_bluetoothServer = nullptr;
     NymeadService *m_nymeaService = nullptr;
     WirelessNetworkDevice *m_wirelessDevice = nullptr;
-    GpioButton *m_button = nullptr;
+    QList<GpioButton*> m_buttons;
 
     QTimer *m_advertisingTimer = nullptr;
 
@@ -95,7 +91,6 @@ private:
     QString m_advertiseName;
     QString m_platformName;
     int m_advertisingTimeout = 60;
-    int m_buttonGpio = -1;
 
     void evaluateNetworkManagerState(NetworkManager::NetworkManagerState state);
 
@@ -110,8 +105,6 @@ private slots:
 
     void onNetworkManagerAvailableChanged(bool available);
     void onNetworkManagerStateChanged(NetworkManager::NetworkManagerState state);
-
-    void onButtonLongPressed();
 
     void onNymeaServiceAvailableChanged(bool available);
 

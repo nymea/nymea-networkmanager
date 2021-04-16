@@ -29,7 +29,10 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "nymeadservice.h"
-#include "loggingcategories.h"
+
+#include <QLoggingCategory>
+
+Q_LOGGING_CATEGORY(dcNymeaService, "NymeaService")
 
 NymeadService::NymeadService(bool pushbuttonEnabled, QObject *parent) :
     QObject(parent),
@@ -65,7 +68,7 @@ bool NymeadService::available() const
     return m_available;
 }
 
-void NymeadService::enableBluetooth(const bool &enable)
+void NymeadService::enableBluetooth(bool enable)
 {
     if (!m_nymeadHardwareBluetoothInterface) {
         qCWarning(dcNymeaService()) << "Could not enable/disable bluetooth hardware resource. D-Bus interface not available.";
