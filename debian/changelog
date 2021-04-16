@@ -1,3 +1,12 @@
+nymea-networkmanager (0.5.6) xenial; urgency=medium
+
+  [ Michael Zanetti ]
+  * Add a dbus interface to trigger the bluetooth server
+  * Add option to enfoce the full name instead of adding the Service
+    UUID
+
+ -- Jenkins <jenkins@nymea.io>  Fri, 16 Apr 2021 23:38:03 +0200
+
 nymea-networkmanager (0.5.5) xenial; urgency=medium
 
   [ Simon Stürz ]
