@@ -65,9 +65,10 @@ QString Core::advertiseName() const
     return m_advertiseName;
 }
 
-void Core::setAdvertiseName(const QString &name)
+void Core::setAdvertiseName(const QString &name, bool forceFullName)
 {
     m_advertiseName = name;
+    m_forceFullName = forceFullName;
 }
 
 QString Core::platformName() const
@@ -207,7 +208,7 @@ void Core::startService()
     m_nymeaService->enableBluetooth(false);
 
     // Start the bluetooth server for this wireless device
-    m_bluetoothServer->setAdvertiseName(m_advertiseName);
+    m_bluetoothServer->setAdvertiseName(m_advertiseName, m_forceFullName);
     m_bluetoothServer->setModelName(m_platformName);
     m_bluetoothServer->setSoftwareVersion(VERSION_STRING);
     m_bluetoothServer->start();

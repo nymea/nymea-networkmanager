@@ -65,7 +65,7 @@ public:
     void setMode(Mode mode);
 
     QString advertiseName() const;
-    void setAdvertiseName(const QString &name);
+    void setAdvertiseName(const QString &name, bool forceFullName = false);
 
     QString platformName() const;
     void setPlatformName(const QString &name);
@@ -89,6 +89,7 @@ private:
 
     Mode m_mode = ModeOffline;
     QString m_advertiseName;
+    bool m_forceFullName = false;
     QString m_platformName;
     int m_advertisingTimeout = 60;
 
