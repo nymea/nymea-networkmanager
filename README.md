@@ -3,22 +3,49 @@
 This daemon allows to set up the wireless network using a bluetooth LE connection. The daemon will automatically start a bluetooth low energy server 
 if the system is currently not connected to any network. Once the system is connected, the daemon will shutdown the bluetooth server. 
 
-# Build
+# Configuration
 
-First you have to install build dependencies:
+nymea-networkmanager will search for a config file in the following location:
 
-> Note: the `libnymea-networkmanager-dev` package can be installed from the [nymea repository](https://nymea.io/en/wiki/nymea/master/install/debian) or built 
-and installed from [source](https://github.com/nymea/libnymea-networkmanager).
+    /etc/nymea/nymea-networkmanager.conf
+
+If such a config file is found, it reads values from there. There is a example config in
+this repository and it will be installed to /etc/nymea-networkmanager.conf with the dpkg package.
+
+> Note: Command line parameters will have higher priority than entries in the configuration file.
 
 
-> Note: the `libnymea-gpio-dev` package can be installed from the [nymea repository](https://nymea.io/en/wiki/nymea/master/install/debian) or built
-and installed from [source](https://github.com/nymea/nymea-gpio).
+# Building from source
 
-> Note: a `Qt` verion `>=` `5.7.0` is required in order to work and bluez version `>=` `5.48`.
+## Dependencies
+
+### Qt
+
+A `Qt` verion `>=` `5.7.0` is required in order to work and bluez version `>=` `5.48`.
 
 
     $ sudo apt update
-    $ sudo apt install qt5-default qtbase5-dev qtbase5-dev-tools libqt5bluetooth5 qtconnectivity5-dev libnymea-networkmanager-dev libnymea-gpio-dev git
+    $ sudo apt install qt5-default qtbase5-dev qtbase5-dev-tools libqt5bluetooth5 qtconnectivity5-dev 
+
+
+### libnymea-networkmanager-dev
+
+The `libnymea-networkmanager-dev` package can be installed from the nymea dpkg repository or built and installed 
+from source:
+
+Repository: `deb http://repository.nymea.io <distro> main`
+Source: https://github.com/nymea/libnymea-networkmanager
+
+
+### libnymea-gpio-dev
+
+The `libnymea-gpio-dev` package can be installed from the nymea dpkg repository or built and installed 
+from source:
+
+Repository: `deb http://repository.nymea.io <distro> main`
+Source: https://github.com/nymea/nymea-gpio
+
+## Building manually
 
 Clone the source code and change into the source directory
 
@@ -55,80 +82,23 @@ In order to build a debian package you can do following:
 
     $ ls -l *.deb
 
-# Config file
+# Development
 
-nymea-networkmanager will search for a config file in the following locations (in this order):
-
-    ~/.config/nymea/nymea-networkmanager.conf
-    /etc/nymea/nymea-networkmanager.conf
-
-If such a config file is found, it reads values from there. There is a example config in
-this repository and it will be installed to /etc/nymea-networkmanager.conf with the dpkg package.
-
-> Note: Command line parameters will have higher priority than entries in the configuration file.
-
-# Command line parameters
-
-    $ nymea-networkmanager --help
-    Usage: ./nymea-networkmanager [options]
-    
-    This daemon allows to configure a wifi network using a bluetooth low energy connection.
-    
-    Copyright © 2018-2019 Simon Stürz <simon.stuerz@nymea.io>
-    
-    Modes: 
-      - offline  This mode starts the bluetooth server once the device is offline
-                 and not connected to any LAN network.
-      - once     This mode starts the bluetooth server only if no network configuration exists.
-                 Once a network connection exists the server will never start again.
-      - button   This mode enables the bluetooth server when a GPIO button has been pressed for
-                 the configured timeout periode.
-      - always   This mode enables the bluetooth server as long the application is running.
-      - start    This mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.
-    
-    
-    
-    Options:
-      -h, --help                   Displays this help.
-      -v, --version                Displays version information.
-      -d, --debug                  Enable more debug output.
-      -a, --advertise-name <NAME>  The name of the bluetooth server. Default
-                                  "BT-WiFi". NOTE: The length is limited to 8
-                                  characters.
-      -f, --force-name             Enforce the full name to be used even if it is
-                                   longer than 8 characters. IMPORTANT: This will
-                                   displace the Service UUID in the discovery data
-                                   which implies that client applications cannot
-                                   discover the wifi setup service on this device
-                                   any more.
-      -p, --platform-name <NAME>   The name of the platform this daemon is running.
-                                   Default "nymea".
-      -g, --gpio <GPIO>            The GPIO sysfs number for the button GPIO. This
-                                   parameter is only needed for the "button" mode.
-      -t, --timeout <SECONDS>      The timeout of the bluetooth server. Minimum
-                                   value is 10. Default "60".
-      -m, --mode <MODE>            Run the daemon in a specific mode (offline,
-                                   once, always, button, start). Default is
-                                   "offline".
-      -b, --dbus-type <DBUSTYPE>   If given, a DBus interface will be exposed on
-                                   the chosen DBus bus type (session, system)        
-        
-
-# Bluetooth GATT profile
+## Bluetooth GATT profile
 -------------------------------------------
 
 In order to connect to nymea-networkmanager using bluetooth low energy, once has to perform a bluetooth discovery, filter for all low energy 
 devices and connect to the device with the name `nymea`. The remote address type for connecting to `nymea-networkmanager` is `public`.
 
 
-## Notifications
+### Notifications
 
 In order to enable/disable the notification for a characteristic with the `notify` flag, a client has to write the value `0x0100` for 
 enabling and `0x0000` for disabling to the descriptor `0x2902` of the corresponding characteristic.
 
-## Services:
+### Services:
 
-### Overview
+#### Overview
 
 | Name               | Service UUID                           | Description
 | ------------------ | -------------------------------------- | ----------------------------------------------------
@@ -144,20 +114,20 @@ enabling and `0x0000` for disabling to the descriptor `0x2902` of the correspond
 > **W** = Write; **R** = Read; **N** = Notify
 
 
-### **S**: Generic Access
+#### **S**: Generic Access
 
 > Default service for Bluetooth LE GATT devices. More information can be 
 found [here](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.generic_access.xml).
 
-### **S**: Generic Attribute
+#### **S**: Generic Attribute
 
 > Default service for Bluetooth LE GATT devices. More information can be found [here](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.generic_attribute.xml).
 
-### **S**: Device Information
+#### **S**: Device Information
 
 > Default service for Bluetooth LE GATT devices.  More information can be found [here](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.device_information.xml).
 
-### **S**: Wireless service `e081fec0-f757-4449-b9c9-bfa83133f7fc`
+#### **S**: Wireless service `e081fec0-f757-4449-b9c9-bfa83133f7fc`
 
 The *Wireless Service* allows a client to configure and monitor a wireless network connection. The connection can be controlled with the *Wireless commander* characteristic. Each command sent will generate a respone on the *Comander response* characteristic containing the error code for the command. The *Wireless connection status* characteristic informs the client about the current connection status of the wireless device.
 
@@ -213,7 +183,7 @@ In following example you can find the basic structure of a command and a respons
 | `7`    | Unknown                    | An unknown error happend.
 
 
-#### Methods
+##### Methods
 
 | Value  | Name              | Description
 | ------ | ----------------- | ----------------------------------------------------
@@ -226,7 +196,7 @@ In following example you can find the basic structure of a command and a respons
 | `6`    | StartAccessPoint  | Start a wireless access point.
 
 
-##### - GetNetworks (0)
+###### - GetNetworks (0)
 
 - Request
 
@@ -250,7 +220,7 @@ In following example you can find the basic structure of a command and a respons
                   }
 
 
-##### - Connect (1)
+###### - Connect (1)
 
 - Request
 
@@ -270,7 +240,7 @@ In following example you can find the basic structure of a command and a respons
                   }
 
 
-##### - ConnectHidden (2)
+###### - ConnectHidden (2)
 
 - Request
 
@@ -291,7 +261,7 @@ In following example you can find the basic structure of a command and a respons
                   }
 
 
-##### - Disconnect (3)
+###### - Disconnect (3)
 
 - Request
 
@@ -307,7 +277,7 @@ In following example you can find the basic structure of a command and a respons
                   }
 
 
-##### - Scan (4)
+###### - Scan (4)
 
 - Request
 
@@ -323,7 +293,7 @@ In following example you can find the basic structure of a command and a respons
                   }
 
 
-##### - GetConnection (5)
+###### - GetConnection (5)
 
 - Request
 
@@ -346,7 +316,7 @@ In following example you can find the basic structure of a command and a respons
                   }
 
 
-##### - StartAccessPoint (6)
+###### - StartAccessPoint (6)
 
 - Request
 
@@ -416,7 +386,7 @@ In following example you can find the basic structure of a command and a respons
 | `0x03` | AccessPoint     | The device is an access point/hotspot.
 
 
-### **S**: Network service `ef6d6610-b8af-49e0-9eca-ab343513641c`
+#### **S**: Network service `ef6d6610-b8af-49e0-9eca-ab343513641c`
 
 This service allows to monitor and configure the `network-manager` daemon running on the system.
 
