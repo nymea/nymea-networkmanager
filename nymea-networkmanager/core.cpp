@@ -241,7 +241,7 @@ void Core::onBluetoothServerRunningChanged(bool running)
         switch (m_mode) {
         case ModeAlways:
             qCDebug(dcApplication()) << "Restart the bluetooth service because of \"always\" mode.";
-            // Give some grace periode for bluez to clean up and restart the service again
+            // Give some grace period for bluez to clean up and restart the service again
             QTimer::singleShot(3000, this, &Core::startService);
             break;
         case ModeStart:
