@@ -34,10 +34,10 @@
 #include <QObject>
 
 #include "nymeadservice.h"
-#include "nymea-gpio/gpiobutton.h"
-#include "bluetooth/bluetoothserver.h"
-#include "networkmanager.h"
-#include "bluetooth/bluetoothserver.h"
+#include <gpiobutton.h>
+#include <bluetooth/bluetoothserver.h>
+#include <networkmanager.h>
+#include <bluetooth/bluetoothserver.h>
 
 Q_DECLARE_LOGGING_CATEGORY(dcApplication)
 
