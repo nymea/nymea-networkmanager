@@ -1,3 +1,10 @@
+nymea-networkmanager (0.5.9) xenial; urgency=medium
+
+  [ Michael Zanetti ]
+  * Fix includes
+
+ -- Jenkins <jenkins@nymea.io>  Tue, 09 Nov 2021 00:48:17 +0100
+
 nymea-networkmanager (0.5.8) xenial; urgency=medium
 
   [ Michael Zanetti ]
