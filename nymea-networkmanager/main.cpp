@@ -93,6 +93,7 @@ int main(int argc, char *argv[])
     Core::Mode mode = Core::ModeOffline;
     int timeout = 60;
     int buttonGpio = -1;
+    bool buttonActiveLow = false;
     QString advertiseName = "BT-WiFi";
     bool forceFullName = false;
     QString platformName = "nymea";
@@ -189,6 +190,9 @@ int main(int argc, char *argv[])
             if (settings.contains("ButtonGpio")) {
                 buttonGpio = settings.value("ButtonGpio", -1).toInt(&gpioValueOk);
             }
+            if (settings.contains("ButtonActiveLow")) {
+                buttonActiveLow = settings.value("ButtonActiveLow", false).toBool();
+            }
             if (settings.contains("Timeout")) {
                 timeout = settings.value("Timeout").toInt(&timeoutValueOk);
             }
@@ -274,7 +278,7 @@ int main(int argc, char *argv[])
     qCDebug(dcApplication()) << "Mode:" << mode;
     qCDebug(dcApplication()) << "Timeout:" << timeout;
     if (mode == Core::ModeButton && buttonGpio > 0) {
-        qCDebug(dcApplication()) << "Button GPIO:" << buttonGpio;
+        qCDebug(dcApplication()) << QString("Button GPIO: %1 (Active %2)").arg(buttonGpio).arg(buttonActiveLow ? "low" : "high");
     }
     if (!dbusBusType.isEmpty() && dbusBusType != "none") {
         qCDebug(dcApplication()) << "DBus interface:" << dbusBusType;
@@ -286,7 +290,7 @@ int main(int argc, char *argv[])
     core.setAdvertisingTimeout(timeout);
     core.setAdvertiseName(advertiseName, forceFullName);
     core.setPlatformName(platformName);
-    core.addGPioButton(buttonGpio);
+    core.addGPioButton(buttonGpio, buttonActiveLow);
     if (dbusBusType == "system") {
         core.enableDBusInterface(QDBusConnection::SystemBus);
     } else if (dbusBusType == "session") {

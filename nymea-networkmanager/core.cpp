@@ -91,9 +91,10 @@ void Core::setAdvertisingTimeout(int advertisingTimeout)
     m_advertisingTimeout = advertisingTimeout;
 }
 
-void Core::addGPioButton(int buttonGpio)
+void Core::addGPioButton(int buttonGpio, bool activeLow)
 {
     GpioButton *button = new GpioButton(buttonGpio, this);
+    button->setActiveLow(activeLow);
     button->setLongPressedTimeout(2000);
     connect(button, &GpioButton::longPressed, this, &Core::startService);
     m_buttons.append(button);
