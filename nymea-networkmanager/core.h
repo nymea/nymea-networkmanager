@@ -73,7 +73,7 @@ public:
     int advertisingTimeout() const;
     void setAdvertisingTimeout(int advertisingTimeout);
 
-    void addGPioButton(int buttonGpio);
+    void addGPioButton(int buttonGpio, bool activeLow = false);
     void enableDBusInterface(QDBusConnection::BusType busType);
 
     void run();
