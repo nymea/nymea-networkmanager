@@ -1,3 +1,12 @@
+nymea-networkmanager (1.0.0) xenial; urgency=medium
+
+  [ Michael Zanetti ]
+  * Make push button active high/low configurable
+
+  [ Jenkins ]
+
+ -- Jenkins <jenkins@nymea.io>  Thu, 10 Mar 2022 12:34:18 +0100
+
 nymea-networkmanager (0.5.9) xenial; urgency=medium
 
   [ Michael Zanetti ]
