@@ -71,7 +71,7 @@ bool NymeadService::available() const
 void NymeadService::enableBluetooth(bool enable)
 {
     if (!m_nymeadHardwareBluetoothInterface) {
-        qCWarning(dcNymeaService()) << "Could not enable/disable bluetooth hardware resource. D-Bus interface not available.";
+        qCDebug(dcNymeaService()) << "Could not enable/disable bluetooth hardware resource. D-Bus interface not available.";
         return;
     }
 
