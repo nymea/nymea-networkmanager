@@ -1,3 +1,10 @@
+nymea-networkmanager (1.1.0) jammy; urgency=medium
+
+  [ Michael Zanetti ]
+  * Don't print a warning when nymead is not running.
+
+ -- jenkins <developer@nymea.io>  Sun, 24 Apr 2022 19:28:04 +0200
+
 nymea-networkmanager (1.0.0) xenial; urgency=medium
 
   [ Michael Zanetti ]
