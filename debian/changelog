@@ -1,3 +1,8 @@
+nymea-networkmanager (1.2.0) jammy; urgency=medium
+
+
+ -- jenkins <developer@nymea.io>  Tue, 07 Jun 2022 19:43:14 +0200
+
 nymea-networkmanager (1.1.0) jammy; urgency=medium
 
   [ Michael Zanetti ]
