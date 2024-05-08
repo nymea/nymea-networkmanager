@@ -1,7 +1,7 @@
 Source: nymea-networkmanager
 Section: utils
 Priority: optional
-Maintainer: Simon Stürz <simon.stuerz@guh.io>
+Maintainer: Simon Stürz <simon.stuerz@nymea.io>
 Build-Depends: debhelper (>= 9.0.0),
   dpkg-dev (>= 1.16.1~),
   qtbase5-dev,
@@ -15,8 +15,6 @@ Standards-Version: 3.9.7
 Package: nymea-networkmanager
 Architecture: any
 Depends: ${misc:Depends},
-  libqt5network5,
-  libqt5bluetooth5,
   network-manager,
   libnymea-networkmanager,
   libnymea-gpio
