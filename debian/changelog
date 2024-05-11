@@ -1,3 +1,10 @@
+nymea-networkmanager (1.9.2) jammy; urgency=medium
+
+  [ Simon Stürz ]
+  * Update debian dependencies
+
+ -- jenkins <developer@nymea.io>  Sat, 11 May 2024 18:42:55 +0200
+
 nymea-networkmanager (1.9.1) jammy; urgency=medium
 
 
