@@ -2,6 +2,8 @@
 
 export DH_VERBOSE=1
 
-%:
-	dh $@ --buildsystem=qmake --parallel --with systemd
+override_dh_installsystemd:
+	dh_installsystemd --restart-after-upgrade
 
+%:
+	dh $@ --buildsystem=qmake --parallel
