@@ -1,3 +1,10 @@
+nymea-networkmanager (1.10.0) jammy; urgency=medium
+
+  [ Michael Zanetti ]
+  * Fix systemd targets
+
+ -- jenkins <developer@nymea.io>  Fri, 26 Jul 2024 15:38:47 +0200
+
 nymea-networkmanager (1.9.3) jammy; urgency=medium
 
   [ Simon Stürz ]
