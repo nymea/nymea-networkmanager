@@ -93,6 +93,11 @@ void Core::setAdvertisingTimeout(int advertisingTimeout)
 
 void Core::addGPioButton(int buttonGpio, bool activeLow)
 {
+    if (buttonGpio < 0) {
+        qCDebug(dcApplication()) << "No button GPIO specified. Skip creating GPIO button ...";
+        return;
+    }
+
     GpioButton *button = new GpioButton(buttonGpio, this);
     button->setActiveLow(activeLow);
     button->setLongPressedTimeout(2000);
@@ -103,7 +108,12 @@ void Core::addGPioButton(int buttonGpio, bool activeLow)
 void Core::enableDBusInterface(QDBusConnection::BusType busType)
 {
     NymeaNetworkManagerDBusService *dbusService = new NymeaNetworkManagerDBusService(busType, this);
-    connect(dbusService, &NymeaNetworkManagerDBusService::enableBluetoothServerCalled, this, &Core::startService);
+
+    // Deprecated
+    connect(dbusService, &NymeaNetworkManagerDBusService::enableBluetoothServerCalled, this,  &Core::onDBusStartRequested);
+
+    connect(dbusService, &NymeaNetworkManagerDBusService::startBluetoothServerRequested, this, &Core::onDBusStartRequested);
+    connect(dbusService, &NymeaNetworkManagerDBusService::stopBluetoothServerRequested, this, &Core::onDBusStopRequested);
 }
 
 void Core::run()
@@ -225,10 +235,26 @@ void Core::stopService()
 
 void Core::onAdvertisingTimeout()
 {
-    if (m_mode != ModeStart)
-        return;
-
     qCDebug(dcApplication()) << "Advertising timeout. Shutting down the bluetooth server.";
+    stopService();
+}
+
+void Core::onDBusStartRequested()
+{
+    if (m_advertisingTimer->isActive()) {
+        qCDebug(dcApplication()) << "Start bluetooth server request received from DBus. Restart advertisement timer of" << m_advertisingTimeout << "seconds";
+        m_advertisingTimer->start(m_advertisingTimeout * 1000);
+        return;
+    } else {
+        qCDebug(dcApplication()) << "Start bluetooth server request received from DBus. Starting advertisement timer of" << m_advertisingTimeout << "seconds";
+        m_advertisingTimer->start(m_advertisingTimeout * 1000);
+        startService();
+    }
+}
+
+void Core::onDBusStopRequested()
+{
+    m_advertisingTimer->stop();
     stopService();
 }
 
@@ -266,6 +292,7 @@ void Core::onBluetoothServerRunningChanged(bool running)
             }
             break;
         case ModeButton:
+        case ModeDBus:
             break;
         }
     }
@@ -323,6 +350,8 @@ void Core::onNetworkManagerAvailableChanged(bool available)
                 qCCritical(dcApplication()) << "Failed to enable the GPIO button for" << button->gpioNumber();
             }
         }
+        break;
+    case ModeDBus:
         break;
     }
 }

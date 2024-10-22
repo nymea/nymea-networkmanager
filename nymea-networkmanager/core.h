@@ -53,7 +53,8 @@ public:
         ModeOffline,
         ModeOnce,
         ModeStart,
-        ModeButton
+        ModeButton,
+        ModeDBus
     };
     Q_ENUM(Mode)
 
@@ -100,6 +101,9 @@ private slots:
     void stopService();
 
     void onAdvertisingTimeout();
+
+    void onDBusStartRequested();
+    void onDBusStopRequested();
 
     void onBluetoothServerRunningChanged(bool running);
     void onBluetoothServerConnectedChanged(bool connected);

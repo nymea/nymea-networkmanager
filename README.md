@@ -14,6 +14,41 @@ this repository and it will be installed to /etc/nymea-networkmanager.conf with 
 
 > Note: Command line parameters will have higher priority than entries in the configuration file.
 
+* `Mode`: The mode specifies the default behavior of the daemon. Following modes are available:
+    * `offline`: This mode starts the bluetooth server once the device is offline and not connected to any LAN network.
+    * `once`: This mode starts the bluetooth server only if no network configuration exists. Once a network connection exists the server will never start again.
+    * `button`: This mode enables the bluetooth server when the specified GPIO button has been pressed for more then 2 seconds. 
+    * `always`: This mode enables the bluetooth server as long the application is running.
+    * `start`: This mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.
+    * `dbus`: This mode enables the bluetooth server only using the DBus methods.
+* `Timeout`: Value is in seconds. Minimum value is 10 seconds. This value specifies how long the server will advertise if no client will connect within this period, afterwards the servicer will be stopped. This value will only be used in modes `start`, `gpio` and `dbus`.
+* `AdvertiseName`: The name advertise name of bluetooth server. The length is limited to 8 characters.
+* `ForceFullName`: Enforce the full name to be used even if it is longer than 8 characters. **IMPORTANT**: This will displace the Service UUID in the discovery data which implies that client applications cannot discover the wifi setup service on this device any more.
+* `PlatformName`: The name of the platform this daemon is running on.
+* `ButtonGpio`: The GPIO number for the button mode. Set to -1 in order to disable it.
+* `ButtonActiveLow`: Can be used to invert the button value. Default is `false`.
+* `DBusBusType`: The bus type for the `dbus` interface. Can be either `system` or `session`
+
+
+# Using DBUs interface
+
+If you want to use the DBus interface in order to start and stop the bluetooth server, you can use following commands:
+
+> Note: assuming you are running the daemon on the system DBus
+
+
+## Start
+
+```bash
+dbus-send --system --dest=io.nymea.networkmanager --type=method_call --print-reply /io/nymea/networkmanager io.nymea.networkmanager.startBluetoothServer
+```
+
+## Stop
+
+```bash
+dbus-send --system --dest=io.nymea.networkmanager --type=method_call --print-reply /io/nymea/networkmanager io.nymea.networkmanager.stopBluetoothServer
+```
+
 
 # Building from source
 
@@ -34,6 +69,7 @@ The `libnymea-networkmanager-dev` package can be installed from the nymea dpkg r
 from source:
 
 Repository: `deb http://repository.nymea.io <distro> main`
+
 Source: https://github.com/nymea/libnymea-networkmanager
 
 
@@ -43,6 +79,7 @@ The `libnymea-gpio-dev` package can be installed from the nymea dpkg repository 
 from source:
 
 Repository: `deb http://repository.nymea.io <distro> main`
+
 Source: https://github.com/nymea/nymea-gpio
 
 ## Building manually
@@ -71,7 +108,7 @@ You can run the daemon directly with following command
 
 In order to build a debian package you can do following:
 
-    $ sudo apt install debhelper dh-systemd
+    $ sudo apt install debhelper
     
     $ mkdir nymea-networkmanager
     $ cd nymea-networkmanager
@@ -129,13 +166,13 @@ found [here](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFi
 
 #### **S**: Wireless service `e081fec0-f757-4449-b9c9-bfa83133f7fc`
 
-The *Wireless Service* allows a client to configure and monitor a wireless network connection. The connection can be controlled with the *Wireless commander* characteristic. Each command sent will generate a respone on the *Comander response* characteristic containing the error code for the command. The *Wireless connection status* characteristic informs the client about the current connection status of the wireless device.
+The *Wireless Service* allows a client to configure and monitor a wireless network connection. The connection can be controlled with the *Wireless commander* characteristic. Each command sent will generate a response on the *Comander response* characteristic containing the error code for the command. The *Wireless connection status* characteristic informs the client about the current connection status of the wireless device.
 
 **Characteristic overview**
 
 | Name                       | Characterisitc UUID                    | Flag   | Description
 | -------------------------- | -------------------------------------- | ------ | -------------------------------------------------------
-| Wireless commander         | `e081fec1-f757-4449-b9c9-bfa83133f7fc` | **W**  | Controll what the wifi manager should do.
+| Wireless commander         | `e081fec1-f757-4449-b9c9-bfa83133f7fc` | **W**  | Control what the wifi manager should do.
 | Commander response         | `e081fec2-f757-4449-b9c9-bfa83133f7fc` | **N**  | This characteristic will be used to inform about the command result (error reporting).
 | Wireless connection status | `e081fec3-f757-4449-b9c9-bfa83133f7fc` | **RN** | Informs about the current wireless connection status.
 | Wireless mode              | `e081fec4-f757-4449-b9c9-bfa83133f7fc` | **RN** | Informs about the current mode of the wireless device.
@@ -145,12 +182,12 @@ The *Wireless Service* allows a client to configure and monitor a wireless netwo
 
 - **C**: *Wireless commander* (W) `e081fec1-f757-4449-b9c9-bfa83133f7fc`
 
-    - *Description*: Controll characteristic for the wireless manager. Each command sent to this characteristic will create a response report on the *Commander response* characterisitc.
+    - *Description*: Controll characteristic for the wireless manager. Each command sent to this characteristic will create a response report on the *Commander response* characteristic.
     - *Range*: [0-20] Byte, UTF-8, JSON
     - *Possible values*:
 
 
-In following example you can find the basic structure of a command and a response. The command can be sent to this *Wireless commander* characteristic, the response will be notified on the *Commander response* characteristic. The JSON object containing the command map has to be formated compact and must end with the '\n' character. If a data package is longer than the allowed 20 Bytes, the data must be splitted into 20 Byte packages and sent in the correct order. The end of a JSON data stream will be recongnized, once the '\n' character will be found at the end of a package. The *Commander response* characteristic uses the same mechanism.
+In following example you can find the basic structure of a command and a response. The command can be sent to this *Wireless commander* characteristic, the response will be notified on the *Commander response* characteristic. The JSON object containing the command map has to be in a compact format and must end with the '\n' character. If a data package is longer than the allowed 20 Bytes, the data must be splitted into 20 Byte packages and sent in the correct order. The end of a JSON data stream will be recognized, once the '\n' character will be found at the end of a package. The *Commander response* characteristic uses the same mechanism.
 
 
 - Request
@@ -180,7 +217,7 @@ In following example you can find the basic structure of a command and a respons
 | `4`    | WirelessNotAvailable       | Wireless currently not available. There is no wireless adapter in the system.
 | `5`    | NetworkingDisabled         | Networking is not enabled. One can enable it in the *Network service*.
 | `6`    | WirelessDisabled           | Wireless networking is not enabled. One can enable it in the *Network service*.
-| `7`    | Unknown                    | An unknown error happend.
+| `7`    | Unknown                    | An unknown error happened.
 
 
 ##### Methods
@@ -191,7 +228,7 @@ In following example you can find the basic structure of a command and a respons
 | `1`    | Connect           | Connect to the network with the given ssid and password in **C** `e081fec4` and **C** `e081fec5`. If the network is open, set the password characteristic to an empty string.
 | `2`    | ConnectHidden     | Connect to the hidden network using the given ssid and password in **C** `e081fec4` and **C** `e081fec5`.
 | `3`    | Disconnect        | Disconnect from current wireless network.
-| `4`    | Scan              | Perform a wireless accesspoint scan.
+| `4`    | Scan              | Perform a wireless access point scan.
 | `5`    | GetConnection     | Get the current connection information on the "Wireless data stream"
 | `6`    | StartAccessPoint  | Start a wireless access point.
 
@@ -341,11 +378,11 @@ In following example you can find the basic structure of a command and a respons
 
 - **C**: *Commander response* (N) `e081fec2-f757-4449-b9c9-bfa83133f7fc`
 
-    - *Description*: Sends a JSON object in 20 Byte packages. The data stream is finished once the \n charater received at the end of a package.
+    - *Description*: Sends a JSON object in 20 Byte packages. The data stream is finished once the \n character received at the end of a package.
     - *Range*: [0-20] Byte, UTF-8, JSON
     - *Possible values*: See "methods - response" for more details
 
-    The JSON object containing the response map has to be formated compact and must end with the '\n' character. If a data package is longer than the allowed 20 Bytes, the data must be splitted into 20 Byte packages and sent in the correct order. The end of a JSON data stream will be recongnized, once the '\n' character will be found at the end of a package. The *Commander* characteristic uses the same mechanism.
+    The JSON object containing the response map has to be in compact format and must end with the '\n' character. If a data package is longer than the allowed 20 Bytes, the data must be splitted into 20 Byte packages and sent in the correct order. The end of a JSON data stream will be recognized, once the '\n' character will be found at the end of a package. The *Commander* characteristic uses the same mechanism.
 
 
 
@@ -362,7 +399,7 @@ In following example you can find the basic structure of a command and a respons
 | `0x02` | Unavailable  | The device is managed by NetworkManager, but is not available for use (i.e. Wireless switched off, missing firmware).
 | `0x03` | Disconnected | The device can be activated, but is currently idle and not connected to a network.
 | `0x04` | Prepare      | The device is preparing the connection to the network.
-| `0x05` | Config       | The device is connecting to the requested network (Associating with the WiFi accesspoint).
+| `0x05` | Config       | The device is connecting to the requested network (Associating with the WiFi access point).
 | `0x06` | NeedAuth     | The device requires more information to continue connecting to the requested network.
 | `0x07` | IpConfig     | The device is requesting IPv4 and/or IPv6 addresses and routing information from the network.
 | `0x08` | IpCheck      | The device is checking whether further action is required for the requested network connection. This may include checking whether only local network access is available, whether a captive portal is blocking access to the Internet.
@@ -395,7 +432,7 @@ This service allows to monitor and configure the `network-manager` daemon runnin
 | Name                          | Characteristic UUID                    | Flag   |  Description
 | ----------------------------- | -------------------------------------- | ------ | --------------------------------------------------------
 | Network status                | `ef6d6611-b8af-49e0-9eca-ab343513641c` | **RN** | Represents the current network manager state.
-| Network commander             | `ef6d6612-b8af-49e0-9eca-ab343513641c` | **W**  | Controll what the network manager should do.
+| Network commander             | `ef6d6612-b8af-49e0-9eca-ab343513641c` | **W**  | Control what the network manager should do.
 | Commander response            | `ef6d6613-b8af-49e0-9eca-ab343513641c` | **N**  | This characteristic will be used to inform about the command result (error reporting).
 | Networking enabled            | `ef6d6614-b8af-49e0-9eca-ab343513641c` | **RN** | This characteristic indicates if the networking in the `network-manager` is enabled.
 | Wireless enabled              | `ef6d6615-b8af-49e0-9eca-ab343513641c` | **RN** | This characteristic indicates if the wireless networking in the `network-manager` is enabled.
@@ -423,7 +460,7 @@ This service allows to monitor and configure the `network-manager` daemon runnin
 
 - **C**: *Network commander* (W) `ef6d6612-b8af-49e0-9eca-ab343513641c`
 
-    - *Description*: Controll what the network manager should do.
+    - *Description*: Control what the network manager should do.
     - *Range*: 1 Byte, Hex value
     - *Possible values*:
 
@@ -447,7 +484,7 @@ This service allows to monitor and configure the `network-manager` daemon runnin
 | `0x01` | InvalidValue               | The commander received an invalid command.
 | `0x02` | NetworkManagerNotAvailable | Network manager is currently not available (`network-manager` daemon or dbus not running).
 | `0x03` | WirelessNotAvailable       | Wireless currently not available. There is no wireless adapter in the system.
-| `0x04` | Unknown                    | An unknown error happend.
+| `0x04` | Unknown                    | An unknown error happened.
 
 
 - **C**: *Networking enabled* (RN) `ef6d6614-b8af-49e0-9eca-ab343513641c`
