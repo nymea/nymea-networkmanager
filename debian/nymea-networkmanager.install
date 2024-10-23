@@ -1,1 +1,3 @@
 nymea-networkmanager.conf /etc/nymea/
+nymea-networkmanager.service /lib/systemd/system/
+dbus/io.nymea.networkmanager.conf /etc/dbus-1/system.d/

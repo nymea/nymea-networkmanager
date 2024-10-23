@@ -25,3 +25,15 @@ void NymeaNetworkManagerDBusService::enableBluetoothServer()
     qCDebug(dcDBus()) << "Enable bluetooth server called";
     emit enableBluetoothServerCalled();
 }
+
+void NymeaNetworkManagerDBusService::startBluetoothServer()
+{
+    qCDebug(dcDBus()) << "Start bluetooth server requested";
+    emit startBluetoothServerRequested();
+}
+
+void NymeaNetworkManagerDBusService::stopBluetoothServer()
+{
+    qCDebug(dcDBus()) << "Stop bluetooth server requested";
+    emit stopBluetoothServerRequested();
+}

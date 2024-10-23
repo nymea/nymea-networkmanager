@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
     parser.setApplicationDescription(QString("\nThis daemon allows to configure a wifi network using a bluetooth low energy connection.\n\n"
-                                             "Copyright %1 2018-2019 Simon Stürz <simon.stuerz@nymea.io>\n\n"
+                                             "Copyright %1 2018-2024 Simon Stürz <simon.stuerz@nymea.io>\n\n"
                                              "Modes: \n"
                                              "  - offline  This mode starts the bluetooth server once the device is offline\n"
                                              "             and not connected to any LAN network.\n"
@@ -118,7 +118,8 @@ int main(int argc, char *argv[])
                                              "  - button   This mode enables the bluetooth server when a GPIO button has been pressed for\n"
                                              "             the configured timeout periode.\n"
                                              "  - always   This mode enables the bluetooth server as long the application is running.\n"
-                                             "  - start    This mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.\n\n").arg(QChar(0xA9)));
+                                             "  - start    This mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.\n"
+                                             "  - dbus     This mode enables the bluetooth server only using the DBus methods.\n\n").arg(QChar(0xA9)));
 
     QCommandLineOption debugOption(QStringList() << "d" << "debug", "Enable more debug output.");
     parser.addOption(debugOption);
@@ -183,31 +184,34 @@ int main(int argc, char *argv[])
                     mode = Core::ModeOnce;
                 } else if (settings.value("Mode").toString().toLower() == "button") {
                     mode = Core::ModeButton;
+                } else if (settings.value("Mode").toString().toLower() == "dbus") {
+                    mode = Core::ModeDBus;
                 } else {
                     qCWarning(dcApplication()).noquote() << QString("The config file's mode \"%1\" does not match the allowed modes.").arg(settings.value("Mode").toString());
                 }
             }
-            if (settings.contains("ButtonGpio")) {
+
+            if (settings.contains("ButtonGpio"))
                 buttonGpio = settings.value("ButtonGpio", -1).toInt(&gpioValueOk);
-            }
-            if (settings.contains("ButtonActiveLow")) {
+
+            if (settings.contains("ButtonActiveLow"))
                 buttonActiveLow = settings.value("ButtonActiveLow", false).toBool();
-            }
-            if (settings.contains("Timeout")) {
+
+            if (settings.contains("Timeout"))
                 timeout = settings.value("Timeout").toInt(&timeoutValueOk);
-            }
-            if (settings.contains("AdvertiseName")) {
+
+            if (settings.contains("AdvertiseName"))
                 advertiseName = settings.value("AdvertiseName").toString();
-            }
-            if (settings.contains("ForceFullName")) {
+
+            if (settings.contains("ForceFullName"))
                 forceFullName = settings.value("ForceFullName").toBool();
-            }
-            if (settings.contains("PlatformName")) {
+
+            if (settings.contains("PlatformName"))
                 platformName = settings.value("PlatformName").toString();
-            }
-            if (settings.contains("DBusBusType")) {
+
+            if (settings.contains("DBusBusType"))
                 dbusBusType = settings.value("DBusBusType").toString();
-            }
+
             break;
         }
     }
@@ -224,30 +228,30 @@ int main(int argc, char *argv[])
             mode = Core::ModeOnce;
         } else if (parser.value(modeOption).toLower() == "button") {
             mode = Core::ModeButton;
-
+        }  else if (parser.value(modeOption).toLower() == "dbus") {
+            mode = Core::ModeDBus;
         }  else {
             qCWarning(dcApplication()).noquote() << QString("The given mode \"%1\" does not match the allowed modes.").arg(parser.value(modeOption));
             parser.showHelp(1);
         }
     }
-    if (parser.isSet(advertiseNameOption)) {
+    if (parser.isSet(advertiseNameOption))
         advertiseName = parser.value(advertiseNameOption);
-    }
-    if (parser.isSet(forceFullNameOption)) {
+
+    if (parser.isSet(forceFullNameOption))
         forceFullName = true;
-    }
-    if (parser.isSet(platformNameOption)) {
+
+    if (parser.isSet(platformNameOption))
         platformName = parser.value(platformNameOption);
-    }
-    if (parser.isSet(timeoutOption)) {
+
+    if (parser.isSet(timeoutOption))
         timeout = parser.value(timeoutOption).toInt(&timeoutValueOk);
-    }
-    if (parser.isSet(gpioOption)) {
+
+    if (parser.isSet(gpioOption))
         buttonGpio = parser.value(gpioOption).toInt(&gpioValueOk);
-    }
-    if (parser.isSet(dbusBusTypeOption)) {
+
+    if (parser.isSet(dbusBusTypeOption))
         dbusBusType = parser.value(dbusBusTypeOption);
-    }
 
     // All parsed. Validate input:
     if (!timeoutValueOk) {
@@ -262,9 +266,12 @@ int main(int argc, char *argv[])
         qCCritical(dcApplication()) << QString("Invalid timeout value passed: \"%1\". The minimal timeout is 10 [s].").arg(parser.value(timeoutOption));
         return(1);
     }
+
     if (mode == Core::ModeButton && buttonGpio <= 0) {
-        qCWarning(dcApplication()) << "Button mode selected but no valid GPIO passed.";
+        qCWarning(dcApplication()) << "Button mode selected but no valid GPIO passed. The button will not work!";
+        return 1;
     }
+
     if (!dbusBusType.isEmpty() && dbusBusType != "system" && dbusBusType != "session" && dbusBusType != "none") {
         qCCritical(dcApplication()) << "Invalid DBus bus type:" << dbusBusType;
         return 1;
@@ -277,12 +284,12 @@ int main(int argc, char *argv[])
     qCDebug(dcApplication()) << "Platform name:" << platformName;
     qCDebug(dcApplication()) << "Mode:" << mode;
     qCDebug(dcApplication()) << "Timeout:" << timeout;
-    if (mode == Core::ModeButton && buttonGpio > 0) {
+
+    if (mode == Core::ModeButton && buttonGpio > 0)
         qCDebug(dcApplication()) << QString("Button GPIO: %1 (Active %2)").arg(buttonGpio).arg(buttonActiveLow ? "low" : "high");
-    }
-    if (!dbusBusType.isEmpty() && dbusBusType != "none") {
+
+    if (!dbusBusType.isEmpty() && dbusBusType != "none")
         qCDebug(dcApplication()) << "DBus interface:" << dbusBusType;
-    }
 
     // Start core
     Core core(&application);
@@ -291,6 +298,7 @@ int main(int argc, char *argv[])
     core.setAdvertiseName(advertiseName, forceFullName);
     core.setPlatformName(platformName);
     core.addGPioButton(buttonGpio, buttonActiveLow);
+
     if (dbusBusType == "system") {
         core.enableDBusInterface(QDBusConnection::SystemBus);
     } else if (dbusBusType == "session") {
