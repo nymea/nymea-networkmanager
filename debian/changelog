@@ -1,3 +1,10 @@
+nymea-networkmanager (1.9.5) jammy; urgency=medium
+
+  [ Simon Stürz ]
+  * Add DBus mode and update configuration documentation
+
+ -- jenkins <developer@nymea.io>  Wed, 23 Oct 2024 12:33:45 +0200
+
 nymea-networkmanager (1.9.4) jammy; urgency=medium
 
 
