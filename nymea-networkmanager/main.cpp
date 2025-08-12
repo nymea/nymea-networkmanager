@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
     parser.setApplicationDescription(QString("\nThis daemon allows to configure a wifi network using a bluetooth low energy connection.\n\n"
-                                             "Copyright %1 2018-2024 Simon Stürz <simon.stuerz@nymea.io>\n\n"
+                                             "Copyright %1 2018-2025 Simon Stürz <simon.stuerz@nymea.io>\n\n"
                                              "Modes: \n"
                                              "  - offline  This mode starts the bluetooth server once the device is offline\n"
                                              "             and not connected to any LAN network.\n"

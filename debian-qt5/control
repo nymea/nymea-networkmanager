@@ -1,0 +1,23 @@
+Source: nymea-networkmanager
+Section: utils
+Priority: optional
+Maintainer: nymea GmbH <developer@nymea.io>
+Standards-Version: 4.6.0
+Build-Depends: debhelper (>= 9.0.0),
+  dpkg-dev (>= 1.16.1~),
+  qtbase5-dev,
+  qtbase5-dev-tools,
+  qtconnectivity5-dev,
+  libnymea-networkmanager-dev (>= 0.5.0),
+  libnymea-gpio-dev
+
+
+Package: nymea-networkmanager
+Architecture: any
+Depends: ${misc:Depends},
+  network-manager,
+  libnymea-networkmanager,
+  libnymea-gpio
+Description: Daemon for wireless configuration using bluetooth LE.
+  This daemon allows to configure a wireless network using a bluetooth
+  low energy gatt server.
