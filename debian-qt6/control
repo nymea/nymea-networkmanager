@@ -1,7 +1,7 @@
 Source: nymea-networkmanager
 Section: utils
 Priority: optional
-Maintainer: nymea GmbH <developer@nymea.io>
+Maintainer: chargebyte austria GmbH <contact@nymea.io>
 Standards-Version: 4.7.2
 Build-Depends: debhelper,
   dpkg-dev,

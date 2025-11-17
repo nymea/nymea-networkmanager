@@ -1,20 +1,29 @@
 # -*- Mode:Python; indent-tabs-mode:nil; tab-width:4 -*-
 #
-# Copyright (C) 2015, 2016 Canonical Ltd
-# Copyright (C) 2016 Harald Sitter <sitter@kde.org>
-# Copyright (C) 2017 Simon Stürz <simon.stuerz@guh.io>
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3 as
-# published by the Free Software Foundation.
+# Copyright (C) 2013 - 2024, nymea GmbH
+# Copyright (C) 2024 - 2025, chargebyte austria GmbH
 #
-# This program is distributed in the hope that it will be useful,
+# This file is part of nymea-networkmanager.
+#
+# nymea-networkmanager is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# nymea-networkmanager is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with nymea-networkmanager. If not, see <https://www.gnu.org/licenses/>.
+#
+# Additional original work:
+# Copyright (C) 2015, 2016 Canonical Ltd
+# Copyright (C) 2016 Harald Sitter <sitter@kde.org>
+# Copyright (C) 2017 Simon Stürz <simon.stuerz@guh.io>
 
 """The autotools plugin is used for autotools based parts.
 
@@ -130,6 +139,5 @@ class XAutotoolsPlugin(snapcraft.BasePlugin):
         # Remove .la files which don't work when they are moved around
         fileset.append("-**/*.la")
         return fileset
-
 
 

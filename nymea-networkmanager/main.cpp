@@ -1,32 +1,26 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
-* Copyright 2013 - 2020, nymea GmbH
-* Contact: contact@nymea.io
+* Copyright (C) 2013 - 2024, nymea GmbH
+* Copyright (C) 2024 - 2025, chargebyte austria GmbH
 *
-* This file is part of nymea.
-* This project including source code and documentation is protected by
-* copyright law, and remains the property of nymea GmbH. All rights, including
-* reproduction, publication, editing and translation, are reserved. The use of
-* this project is subject to the terms of a license agreement to be concluded
-* with nymea GmbH in accordance with the terms of use of nymea GmbH, available
-* under https://nymea.io/license
+* This file is part of nymea-networkmanager.
 *
-* GNU General Public License Usage
-* Alternatively, this project may be redistributed and/or modified under the
-* terms of the GNU General Public License as published by the Free Software
-* Foundation, GNU version 3. This project is distributed in the hope that it
-* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-* Public License for more details.
+* nymea-networkmanager is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
 *
-* You should have received a copy of the GNU General Public License along with
-* this project. If not, see <https://www.gnu.org/licenses/>.
+* nymea-networkmanager is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
 *
-* For any further details and any questions please contact us under
-* contact@nymea.io or see our FAQ/Licensing Information on
-* https://nymea.io/license/faq
+* You should have received a copy of the GNU General Public License
+* along with nymea-networkmanager. If not, see <https://www.gnu.org/licenses/>.
 *
-* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <QCoreApplication>
 #include <QCommandLineParser>
@@ -100,8 +94,8 @@ int main(int argc, char *argv[])
     QString dbusBusType;
 
     Application application(argc, argv);
-    application.setApplicationName("nymea-networkmanager");
     application.setOrganizationName("nymea");
+    application.setApplicationName("nymea-networkmanager");
     application.setApplicationVersion(VERSION_STRING);
 
     // Command line parser
@@ -109,7 +103,9 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
     parser.setApplicationDescription(QString("\nThis daemon allows to configure a wifi network using a bluetooth low energy connection.\n\n"
-                                             "Copyright %1 2018-2025 Simon Stürz <simon.stuerz@nymea.io>\n\n"
+                                             "Copyright (C) 2013 - 2024 nymea GmbH\n"
+                                             "Copyright (C) 2024 - 2025 chargebyte austria GmbH\n\n"
+                                             "Released under the GNU General Public License v3.0 or (at your option) any later version.\n\n"
                                              "Modes: \n"
                                              "  - offline  This mode starts the bluetooth server once the device is offline\n"
                                              "             and not connected to any LAN network.\n"
@@ -119,7 +115,7 @@ int main(int argc, char *argv[])
                                              "             the configured timeout periode.\n"
                                              "  - always   This mode enables the bluetooth server as long the application is running.\n"
                                              "  - start    This mode starts the bluetooth server for 3 minutes on start and shuts down after a connection.\n"
-                                             "  - dbus     This mode enables the bluetooth server only using the DBus methods.\n\n").arg(QChar(0xA9)));
+                                             "  - dbus     This mode enables the bluetooth server only using the DBus methods.\n\n"));
 
     QCommandLineOption debugOption(QStringList() << "d" << "debug", "Enable more debug output.");
     parser.addOption(debugOption);
