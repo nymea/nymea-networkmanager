@@ -506,3 +506,10 @@ This service allows to monitor and configure the `network-manager` daemon runnin
         - `0x01` : Enabled
 
 
+
+# License
+
+SPDX-License-Identifier: GPL-3.0-or-later
+
+This project is licensed under GPL-3.0-or-later; see `LICENSE.GPL3` for the
+full text.
