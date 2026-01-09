@@ -1,3 +1,8 @@
+nymea-networkmanager (1.15.0) noble; urgency=medium
+
+
+ -- jenkins <developer@nymea.io>  Fri, 09 Jan 2026 15:34:24 +0100
+
 nymea-networkmanager (1.13.0) jammy; urgency=medium
 
   [ Simon Stürz ]
