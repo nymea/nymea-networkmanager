@@ -5,12 +5,11 @@ if the system is currently not connected to any network. Once the system is conn
 
 # Configuration
 
-nymea-networkmanager will search for a config file in the following location:
+The package ships default configs in `/usr/share/nymea/defaults/`. At runtime the daemon prefers
+`/var/lib/nymea/nymea-networkmanager.conf` when present and otherwise falls back to
+`/usr/share/nymea/defaults/nymea-networkmanager.conf`.
 
-    /etc/nymea/nymea-networkmanager.conf
-
-If such a config file is found, it reads values from there. There is a example config in
-this repository and it will be installed to /etc/nymea-networkmanager.conf with the dpkg package.
+The default config file looks like this:
 
 > Note: Command line parameters will have higher priority than entries in the configuration file.
 

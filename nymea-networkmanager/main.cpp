@@ -3,7 +3,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *
 * Copyright (C) 2013 - 2024, nymea GmbH
-* Copyright (C) 2024 - 2025, chargebyte austria GmbH
+* Copyright (C) 2024 - 2026, chargebyte austria GmbH
 *
 * This file is part of nymea-networkmanager.
 *
@@ -22,22 +22,26 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <QCoreApplication>
-#include <QCommandLineParser>
 #include <QCommandLineOption>
-#include <QSettings>
-#include <QStandardPaths>
+#include <QCommandLineParser>
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QMetaEnum>
+#include <QSettings>
 
-#include "core.h"
 #include "application.h"
+#include "core.h"
 
 static const char *const normal = "\033[0m";
 static const char *const warning = "\e[33m";
 static const char *const error = "\e[31m";
 
 static QHash<QString, bool> s_loggingFilters;
+
+static QString preferredConfigPath(const QString &runtimePath, const QString &defaultPath)
+{
+    return QFileInfo::exists(runtimePath) ? runtimePath : defaultPath;
+}
 
 static void loggingCategoryFilter(QLoggingCategory *category)
 {
@@ -56,7 +60,7 @@ static void loggingCategoryFilter(QLoggingCategory *category)
     }
 }
 
-static void consoleLogHandler(QtMsgType type, const QMessageLogContext& context, const QString& message)
+static void consoleLogHandler(QtMsgType type, const QMessageLogContext &context, const QString &message)
 {
     switch (type) {
     case QtInfoMsg:
@@ -78,10 +82,12 @@ static void consoleLogHandler(QtMsgType type, const QMessageLogContext& context,
     fflush(stdout);
 }
 
-
 int main(int argc, char *argv[])
 {
     qInstallMessageHandler(consoleLogHandler);
+
+    const QString runtimeConfigFile = QStringLiteral("/var/lib/nymea/nymea-networkmanager.conf");
+    const QString defaultConfigFile = QStringLiteral("/usr/share/nymea/defaults/nymea-networkmanager.conf");
 
     // Default configuration:
     Core::Mode mode = Core::ModeOffline;
@@ -104,7 +110,7 @@ int main(int argc, char *argv[])
     parser.addVersionOption();
     parser.setApplicationDescription(QString("\nThis daemon allows to configure a wifi network using a bluetooth low energy connection.\n\n"
                                              "Copyright (C) 2013 - 2024 nymea GmbH\n"
-                                             "Copyright (C) 2024 - 2025 chargebyte austria GmbH\n\n"
+                                             "Copyright (C) 2024 - 2026 chargebyte austria GmbH\n\n"
                                              "Released under the GNU General Public License v3.0 or (at your option) any later version.\n\n"
                                              "Modes: \n"
                                              "  - offline  This mode starts the bluetooth server once the device is offline\n"
@@ -159,57 +165,52 @@ int main(int argc, char *argv[])
     bool timeoutValueOk = true;
     bool gpioValueOk = true;
 
-    // Now read the cofig file, overriding defaults
-    QStringList configLocations;
-    configLocations << QStandardPaths::standardLocations(QStandardPaths::ConfigLocation);
-    configLocations << "/etc";
-    QString fileName = "/nymea/nymea-networkmanager.conf";
-    foreach (const QString &configLocation, configLocations) {
-        if (QFileInfo::exists(configLocation + fileName)) {
-            qCDebug(dcApplication) << "Using configuration file from:" << configLocation + fileName;
-            QSettings settings(configLocation + fileName, QSettings::IniFormat);
+    // Read the config file, overriding defaults
+    const QString configFile = preferredConfigPath(runtimeConfigFile, defaultConfigFile);
+    if (QFileInfo::exists(configFile)) {
+        qCDebug(dcApplication) << "Using configuration file from:" << configFile;
+        QSettings settings(configFile, QSettings::IniFormat);
 
-            if (settings.contains("Mode")) {
-                if (settings.value("Mode").toString().toLower() == "offline") {
-                    mode = Core::ModeOffline;
-                } else if (settings.value("Mode").toString().toLower() == "always") {
-                    mode = Core::ModeAlways;
-                } else if (settings.value("Mode").toString().toLower() == "start") {
-                    mode = Core::ModeStart;
-                } else if (settings.value("Mode").toString().toLower() == "once") {
-                    mode = Core::ModeOnce;
-                } else if (settings.value("Mode").toString().toLower() == "button") {
-                    mode = Core::ModeButton;
-                } else if (settings.value("Mode").toString().toLower() == "dbus") {
-                    mode = Core::ModeDBus;
-                } else {
-                    qCWarning(dcApplication()).noquote() << QString("The config file's mode \"%1\" does not match the allowed modes.").arg(settings.value("Mode").toString());
-                }
+        if (settings.contains("Mode")) {
+
+            const QString modeString = settings.value("Mode").toString().toLower();
+            if (modeString == "offline") {
+                mode = Core::ModeOffline;
+            } else if (modeString == "always") {
+                mode = Core::ModeAlways;
+            } else if (modeString == "start") {
+                mode = Core::ModeStart;
+            } else if (modeString == "once") {
+                mode = Core::ModeOnce;
+            } else if (modeString == "button") {
+                mode = Core::ModeButton;
+            } else if (modeString == "dbus") {
+                mode = Core::ModeDBus;
+            } else {
+                qCWarning(dcApplication()).noquote() << QString("The config file's mode \"%1\" does not match the allowed modes.").arg(settings.value("Mode").toString());
             }
-
-            if (settings.contains("ButtonGpio"))
-                buttonGpio = settings.value("ButtonGpio", -1).toInt(&gpioValueOk);
-
-            if (settings.contains("ButtonActiveLow"))
-                buttonActiveLow = settings.value("ButtonActiveLow", false).toBool();
-
-            if (settings.contains("Timeout"))
-                timeout = settings.value("Timeout").toInt(&timeoutValueOk);
-
-            if (settings.contains("AdvertiseName"))
-                advertiseName = settings.value("AdvertiseName").toString();
-
-            if (settings.contains("ForceFullName"))
-                forceFullName = settings.value("ForceFullName").toBool();
-
-            if (settings.contains("PlatformName"))
-                platformName = settings.value("PlatformName").toString();
-
-            if (settings.contains("DBusBusType"))
-                dbusBusType = settings.value("DBusBusType").toString();
-
-            break;
         }
+
+        if (settings.contains("ButtonGpio"))
+            buttonGpio = settings.value("ButtonGpio", -1).toInt(&gpioValueOk);
+
+        if (settings.contains("ButtonActiveLow"))
+            buttonActiveLow = settings.value("ButtonActiveLow", false).toBool();
+
+        if (settings.contains("Timeout"))
+            timeout = settings.value("Timeout").toInt(&timeoutValueOk);
+
+        if (settings.contains("AdvertiseName"))
+            advertiseName = settings.value("AdvertiseName").toString();
+
+        if (settings.contains("ForceFullName"))
+            forceFullName = settings.value("ForceFullName").toBool();
+
+        if (settings.contains("PlatformName"))
+            platformName = settings.value("PlatformName").toString();
+
+        if (settings.contains("DBusBusType"))
+            dbusBusType = settings.value("DBusBusType").toString();
     }
 
     // Now parse command line

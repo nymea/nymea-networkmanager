@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+set -e
+
+LEGACY_CONFIG_DIR="/etc/nymea"
+RUNTIME_CONFIG_DIR="/var/lib/nymea"
+MIGRATION_VERSION_FILE="${RUNTIME_CONFIG_DIR}/.networkmanager-migration-version"
+MIGRATION_VERSION="1"
+CONFIG_FILES="nymea-networkmanager.conf"
+
+migrate_legacy_configuration()
+{
+    if [ -e "${MIGRATION_VERSION_FILE}" ] || [ ! -d "${LEGACY_CONFIG_DIR}" ]; then
+        return
+    fi
+
+    migrated=0
+
+    for config_file in ${CONFIG_FILES}; do
+        if [ -e "${LEGACY_CONFIG_DIR}/${config_file}" ]; then
+            mkdir -p "${RUNTIME_CONFIG_DIR}"
+            cp -a "${LEGACY_CONFIG_DIR}/${config_file}" "${RUNTIME_CONFIG_DIR}/${config_file}"
+            migrated=1
+        fi
+    done
+
+    if [ "${migrated}" -eq 1 ]; then
+        printf '%s\n' "${MIGRATION_VERSION}" > "${MIGRATION_VERSION_FILE}"
+    fi
+}
+
+case "$1" in
+    install|upgrade)
+        migrate_legacy_configuration
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0
