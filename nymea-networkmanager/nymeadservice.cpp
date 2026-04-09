@@ -39,7 +39,7 @@ NymeadService::NymeadService(bool pushbuttonEnabled, QObject *parent) :
     }
 
     // Get notification when nymead appears/disappears on DBus
-    m_serviceWatcher = new QDBusServiceWatcher("io.guh.nymead", QDBusConnection::systemBus(), QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration, this);
+    m_serviceWatcher = new QDBusServiceWatcher("io.nymea.nymead", QDBusConnection::systemBus(), QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration, this);
     connect(m_serviceWatcher, &QDBusServiceWatcher::serviceRegistered, this, &NymeadService::serviceRegistered);
     connect(m_serviceWatcher, &QDBusServiceWatcher::serviceUnregistered, this, &NymeadService::serviceUnregistered);
 
@@ -116,7 +116,7 @@ bool NymeadService::init()
         }
     }
 
-    m_nymeadHardwareInterface = new QDBusInterface("io.guh.nymead", "/io/guh/nymead/HardwareManager", "io.guh.nymead", QDBusConnection::systemBus(), this);
+    m_nymeadHardwareInterface = new QDBusInterface("io.nymea.nymead", "/io/nymea/nymead/HardwareManager", "io.nymea.nymead", QDBusConnection::systemBus(), this);
     if (!m_nymeadHardwareInterface->isValid()) {
         qCWarning(dcNymeaService()) << "Invalid D-Bus HardwareManager interface.";
         m_nymeadHardwareInterface->deleteLater();
@@ -124,7 +124,7 @@ bool NymeadService::init()
         return false;
     }
 
-    m_nymeadHardwareBluetoothInterface = new QDBusInterface("io.guh.nymead", "/io/guh/nymead/HardwareManager/BluetoothLEManager", "io.guh.nymead", QDBusConnection::systemBus(), this);
+    m_nymeadHardwareBluetoothInterface = new QDBusInterface("io.nymea.nymead", "/io/nymea/nymead/HardwareManager/BluetoothLEManager", "io.nymea.nymead", QDBusConnection::systemBus(), this);
     if (!m_nymeadHardwareBluetoothInterface->isValid()) {
         qCWarning(dcNymeaService()) << "Invalid D-Bus HardwareManager BluetoothLE interface.";
         m_nymeadHardwareBluetoothInterface->deleteLater();
