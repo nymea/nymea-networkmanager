@@ -1,3 +1,11 @@
+nymea-networkmanager (1.15.0) noble; urgency=medium
+
+  [ Simon Stürz ]
+  * Migtrate configuration files from /etc/nymea to /var/lib/nymea
+  * Update nymea DBus interface usage
+
+ -- jenkins <developer@nymea.io>  Tue, 14 Apr 2026 14:23:37 +0200
+
 nymea-networkmanager (1.14.2) noble; urgency=medium
 
 
